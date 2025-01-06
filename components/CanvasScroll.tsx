@@ -91,12 +91,39 @@ export const CanvasScrollInteraction: React.FC<
 
       npZones.forEach((items) => {
         // console.log(items.item);
+        if (items.item.zone_code === "01") {
+          // drawTWLTL(context, items.positionYBegin, items.positionYEnd);
+        }
+        if (items.item.zone_code === "02") {
+          // draw2DBYL(context, items.positionYBegin, items.positionYEnd);
+        }
+        if (items.item.zone_code === "03") {
+          // drawLTLSAME(context, items.positionYBegin, items.positionYEnd);
+        }
+        if (items.item.zone_code === "04") {
+          // drawLTLOPP(context, items.positionYBegin, items.positionYEnd);
+        }
+        if (items.item.zone_code === "06") {
+          // drawNONE(context, items.positionYBegin, items.positionYEnd);
+        }
         if (items.item.zone_code === "07") {
           console.log(items.positionYBegin, items.positionYEnd);
           drawLNoPass(context, items.positionYBegin, items.positionYEnd);
         }
         if (items.item.zone_code === "08") {
           drawRNoPass(context, items.positionYBegin, items.positionYEnd);
+        }
+        if (items.item.zone_code === "09") {
+          // drawLPass(context, items.positionYBegin);
+        }
+        if (items.item.zone_code === "10") {
+          // drawRPass(context, items.positionYBegin);
+        }
+        if (items.item.zone_code === "11") {
+          // drawExcluded(context, items.positionYBegin);
+        }
+        if (items.item.zone_code === "12") {
+          // drawUndetermined(context, items.positionYBegin);
         }
         // drawTWLTL(context, positionY); //01
         // draw2DBYL(context, positionY); //02
