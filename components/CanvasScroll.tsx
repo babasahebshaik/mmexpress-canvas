@@ -1,4 +1,17 @@
 import React, { useRef, useState, useEffect } from "react";
+import {
+  draw2DBYL,
+  drawExcluded,
+  drawLNoPass,
+  drawLPass,
+  drawLTLOPP,
+  drawLTLSAME,
+  drawNONE,
+  drawRNoPass,
+  drawRPass,
+  drawTWLTL,
+  drawUndetermined,
+} from "./drawZones";
 // import "./App.css"; // Create a CSS file or inline styles as needed
 
 interface ControlPoint {
@@ -12,19 +25,32 @@ interface ControlPointGroup {
   items: ControlPoint[];
 }
 
+interface NPZones {
+  positionYBegin: number;
+  positionYEnd: number;
+  item: {
+    b_trulog: string;
+    e_trulog: string;
+    zone_code: string;
+  };
+}
+
 interface CanvasScrollInteractionProps {
   data: any;
   cpArr: ControlPointGroup[];
+  recArr: NPZones[];
 }
 
 export const CanvasScrollInteraction: React.FC<
   CanvasScrollInteractionProps
-> = ({ data, cpArr }) => {
-  //   console.log(cpArr);
+> = ({ data, cpArr, recArr }) => {
+  // console.log(cpArr);
+  console.log(recArr);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [lines, setLines] = useState([400]);
   const [controlP, setControlP] = useState(cpArr);
-  const lineHeight = 100;
+  const [npZones, setNPZones] = useState(recArr);
+  const lineHeight = 50;
   const canvasWidth = 600;
   const canvasHeight = 800;
 
@@ -46,36 +72,43 @@ export const CanvasScrollInteraction: React.FC<
       context.fillRect(0, 0, canvasWidth, canvasHeight);
     };
 
-    const drawTWLTL = (positionY: number) => {
-      const drawLineWithStyle = (
-        x1: number,
-        y1: number,
-        x2: number,
-        y2: number,
-        dash: number[] = [],
-        color: string = "#FFD700",
-        width: number = 4
-      ) => {
-        context.beginPath();
-        context.moveTo(x1, y1);
-        context.lineTo(x2, y2);
-        context.setLineDash(dash);
-        context.strokeStyle = color;
-        context.lineWidth = width;
-        context.stroke();
-      };
-
-      drawLineWithStyle(100, positionY, 100, positionY + 50);
-      drawLineWithStyle(115, positionY, 115, positionY + 50, [5, 5]);
-      drawLineWithStyle(135, positionY, 135, positionY + 50, [5, 5]);
-      drawLineWithStyle(150, positionY, 150, positionY + 50);
-    };
-
     const drawLines = () => {
       context.clearRect(0, 0, canvasWidth, canvasHeight);
       drawCanvasBackground();
-      lines.forEach((positionY) => {
-        drawTWLTL(positionY);
+      // lines.forEach((positionY) => {
+      //   drawTWLTL(context, positionY);
+      //   draw2DBYL(context, positionY);
+      //   drawLTLSAME(context, positionY);
+      //   drawLTLOPP(context, positionY);
+      //   drawNONE(context, positionY);
+      //   drawLNoPass(context, positionY);
+      //   drawRNoPass(context, positionY);
+      //   drawLPass(context, positionY);
+      //   drawRPass(context, positionY);
+      //   drawExcluded(context, positionY);
+      //   drawUndetermined(context, positionY);
+      // });
+
+      npZones.forEach((items) => {
+        // console.log(items.item);
+        if (items.item.zone_code === "07") {
+          console.log(items.positionYBegin, items.positionYEnd);
+          drawLNoPass(context, items.positionYBegin, items.positionYEnd);
+        }
+        if (items.item.zone_code === "08") {
+          drawRNoPass(context, items.positionYBegin, items.positionYEnd);
+        }
+        // drawTWLTL(context, positionY); //01
+        // draw2DBYL(context, positionY); //02
+        // drawLTLSAME(context, positionY); //03
+        // drawLTLOPP(context, positionY); //04
+        // drawNONE(context, positionY); //06
+        // drawLNoPass(context, positionY); //07
+        // drawRNoPass(context, positionY); //08
+        // drawLPass(context, positionY); //09
+        // drawRPass(context, positionY); //10
+        // drawExcluded(context, positionY); //11
+        // drawUndetermined(context, positionY); //12
       });
 
       const printControlPoints = (
@@ -149,12 +182,26 @@ export const CanvasScrollInteraction: React.FC<
           positionY: controlPoint.positionY - lineHeight,
         }))
       );
+      setNPZones((prevNPZones) =>
+        prevNPZones.map((npZone) => ({
+          ...npZone,
+          positionYBegin: npZone.positionYBegin - lineHeight,
+          positionYEnd: npZone.positionYEnd - lineHeight,
+        }))
+      );
     } else {
       setLines((prevLines) => prevLines.map((line) => line + lineHeight));
       setControlP((prevControlP) =>
         prevControlP.map((controlPoint) => ({
           ...controlPoint,
           positionY: controlPoint.positionY + lineHeight,
+        }))
+      );
+      setNPZones((prevNPZones) =>
+        prevNPZones.map((npZone) => ({
+          ...npZone,
+          positionYBegin: npZone.positionYBegin + lineHeight,
+          positionYEnd: npZone.positionYEnd + lineHeight,
         }))
       );
     }
