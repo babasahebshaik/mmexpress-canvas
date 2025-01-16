@@ -9,6 +9,7 @@ import {
   drawNONE,
   drawRNoPass,
   drawRPass,
+  drawText,
   drawTWLTL,
   drawUndetermined,
 } from "./drawZones";
@@ -45,7 +46,7 @@ export const CanvasScrollInteraction: React.FC<
   CanvasScrollInteractionProps
 > = ({ data, cpArr, recArr }) => {
   // console.log(cpArr);
-  console.log(recArr);
+  // console.log(recArr);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [lines, setLines] = useState([400]);
   const [controlP, setControlP] = useState(cpArr);
@@ -75,67 +76,64 @@ export const CanvasScrollInteraction: React.FC<
     const drawLines = () => {
       context.clearRect(0, 0, canvasWidth, canvasHeight);
       drawCanvasBackground();
-      // lines.forEach((positionY) => {
-      //   drawTWLTL(context, positionY);
-      //   draw2DBYL(context, positionY);
-      //   drawLTLSAME(context, positionY);
-      //   drawLTLOPP(context, positionY);
-      //   drawNONE(context, positionY);
-      //   drawLNoPass(context, positionY);
-      //   drawRNoPass(context, positionY);
-      //   drawLPass(context, positionY);
-      //   drawRPass(context, positionY);
-      //   drawExcluded(context, positionY);
-      //   drawUndetermined(context, positionY);
-      // });
-
-      npZones.forEach((items) => {
-        // console.log(items.item);
-        if (items.item.zone_code === "01") {
-          // drawTWLTL(context, items.positionYBegin, items.positionYEnd);
+      npZones.forEach((items, index, itemsArr) => {
+        // console.log(index, itemsArr);
+        if (items.positionYBegin > 0 && items.positionYEnd < canvasHeight) {
+          if (items.item.zone_code === "01") {
+            drawText(context, items);
+            drawTWLTL(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "02") {
+            drawText(context, items);
+            draw2DBYL(context, items.positionYBegin, items.positionYEnd);
+            if (["07", "08"].includes(itemsArr[index - 1]?.item.zone_code)) {
+              console.log("2DBYL1", items);
+              console.log(
+                itemsArr.filter(
+                  (items) =>
+                    items.positionYEnd === itemsArr[index - 1].positionYEnd &&
+                    ["07", "08"].includes(items.item.zone_code)
+                ).length
+              );
+            }
+          }
+          if (items.item.zone_code === "03") {
+            drawText(context, items);
+            drawLTLSAME(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "04") {
+            drawText(context, items);
+            drawLTLOPP(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "06") {
+            drawText(context, items);
+            drawNONE(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "07") {
+            drawText(context, items);
+            drawLNoPass(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "08") {
+            drawText(context, items);
+            drawRNoPass(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "09") {
+            drawText(context, items);
+            drawLPass(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "10") {
+            drawText(context, items);
+            drawRPass(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "11") {
+            drawText(context, items);
+            drawExcluded(context, items.positionYBegin, items.positionYEnd);
+          }
+          if (items.item.zone_code === "12") {
+            drawText(context, items);
+            drawUndetermined(context, items.positionYBegin, items.positionYEnd);
+          }
         }
-        if (items.item.zone_code === "02") {
-          // draw2DBYL(context, items.positionYBegin, items.positionYEnd);
-        }
-        if (items.item.zone_code === "03") {
-          // drawLTLSAME(context, items.positionYBegin, items.positionYEnd);
-        }
-        if (items.item.zone_code === "04") {
-          // drawLTLOPP(context, items.positionYBegin, items.positionYEnd);
-        }
-        if (items.item.zone_code === "06") {
-          // drawNONE(context, items.positionYBegin, items.positionYEnd);
-        }
-        if (items.item.zone_code === "07") {
-          console.log(items.positionYBegin, items.positionYEnd);
-          drawLNoPass(context, items.positionYBegin, items.positionYEnd);
-        }
-        if (items.item.zone_code === "08") {
-          drawRNoPass(context, items.positionYBegin, items.positionYEnd);
-        }
-        if (items.item.zone_code === "09") {
-          // drawLPass(context, items.positionYBegin);
-        }
-        if (items.item.zone_code === "10") {
-          // drawRPass(context, items.positionYBegin);
-        }
-        if (items.item.zone_code === "11") {
-          // drawExcluded(context, items.positionYBegin);
-        }
-        if (items.item.zone_code === "12") {
-          // drawUndetermined(context, items.positionYBegin);
-        }
-        // drawTWLTL(context, positionY); //01
-        // draw2DBYL(context, positionY); //02
-        // drawLTLSAME(context, positionY); //03
-        // drawLTLOPP(context, positionY); //04
-        // drawNONE(context, positionY); //06
-        // drawLNoPass(context, positionY); //07
-        // drawRNoPass(context, positionY); //08
-        // drawLPass(context, positionY); //09
-        // drawRPass(context, positionY); //10
-        // drawExcluded(context, positionY); //11
-        // drawUndetermined(context, positionY); //12
       });
 
       const printControlPoints = (
@@ -191,7 +189,7 @@ export const CanvasScrollInteraction: React.FC<
     };
 
     drawLines();
-  }, [controlP, lines]);
+  }, [controlP, lines, npZones]);
 
   const addLine = () => {
     setLines([lines[0] - lineHeight, ...lines]);

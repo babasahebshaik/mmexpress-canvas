@@ -1,12 +1,15 @@
 import { CanvasScrollInteraction } from "./CanvasScroll";
 
-import { data } from "./data.js";
-
+import { data, passzData } from "./data.js";
+import { data3 } from "./data3.js";
+const canvaspageShift = 800;
+const canvasSacle = 1 * 1000;
 export function Canva() {
   const _controlsArr = data.controlsArr[0].children;
   _controlsArr.sort((a, b) => Number(a.log_point) - Number(b.log_point));
   const cpArr = _controlsArr.map((item) => {
-    const positionY = Math.round(Number(item.log_point) * 1000) - 800; // 3000 is the initial position need to be adjusted dynamically **
+    const positionY =
+      Math.round(Number(item.log_point) * canvasSacle) - canvaspageShift; // 3000 is the initial position need to be adjusted dynamically **
 
     return {
       positionY: -positionY,
@@ -34,9 +37,12 @@ export function Canva() {
     []
   );
 
-  const recommendedZones = data.npZonesArr[0].children.filter(
+  let recommendedZones = data.npZonesArr[0].children.filter(
     (zone) => zone.study_type === "Recommended" // for now only for recommended zones
   );
+ 
+  recommendedZones=[...recommendedZones,...passzData];
+  console.log(recommendedZones,passzData);
   recommendedZones.sort((a, b) => {
     if (a.study_type === b.study_type) {
       return a.b_trulog - b.b_trulog;
@@ -45,19 +51,17 @@ export function Canva() {
   });
 
   const recArr = recommendedZones.map((item) => {
-    const positionYBegin = Math.round(Number(item.b_trulog) * 1000) - 800; // 3000 is the initial position need to be adjusted dynamically **
-    const positionYEnd = Math.round(Number(item.e_trulog) * 1000) - 800;
+    const positionYBegin =
+      Math.round(Number(item.b_trulog) * canvasSacle) - canvaspageShift; // 3000 is the initial position need to be adjusted dynamically **
+    const positionYEnd =
+      Math.round(Number(item.e_trulog) * canvasSacle) - canvaspageShift;
     return {
       positionYBegin: -positionYBegin,
       positionYEnd: -positionYEnd,
       item: item,
     };
   });
-  // console.log(data.npZonesArr[0].children, recommendedZones, recArr);
-  // console.log(recArr); 
-
-  // console.log(groupedByPositionYArray);
-  // console.log(cpArr);
+ 
   return (
     <div
       className="App"
@@ -69,7 +73,11 @@ export function Canva() {
       }}
     >
       {/* <CanvasLineDrawing data={data} /> */}
-      <CanvasScrollInteraction data={data} cpArr={groupedByPositionYArray} recArr={recArr}/>
+      <CanvasScrollInteraction
+        data={data3}
+        cpArr={groupedByPositionYArray}
+        recArr={recArr}
+      />
     </div>
   );
 }
