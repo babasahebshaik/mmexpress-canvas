@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import {
   draw2DBYL,
+  drawDistanceText,
   drawExcluded,
   drawLNoPass,
   drawLPass,
@@ -13,6 +14,7 @@ import {
   drawTWLTL,
   drawUndetermined,
 } from "./drawZones";
+import { findConjunction } from "./helperFunction";
 // import "./App.css"; // Create a CSS file or inline styles as needed
 
 interface ControlPoint {
@@ -37,14 +39,14 @@ interface NPZones {
 }
 
 interface CanvasScrollInteractionProps {
-  data: any;
   cpArr: ControlPointGroup[];
   recArr: NPZones[];
 }
 
-export const CanvasScrollInteraction: React.FC<
-  CanvasScrollInteractionProps
-> = ({ data, cpArr, recArr }) => {
+export const CanvasScrollInteraction: React.FC<CanvasScrollInteractionProps> = ({
+  cpArr,
+  recArr,
+}) => {
   // console.log(cpArr);
   // console.log(recArr);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -73,64 +75,174 @@ export const CanvasScrollInteraction: React.FC<
       context.fillRect(0, 0, canvasWidth, canvasHeight);
     };
 
+    const drawBlackRoad = (x: number, y: number, w: number, h: number) => {
+      context.fillStyle = "grey";
+      context.fillRect(x, y, w, canvasHeight);
+    };
+
     const drawLines = () => {
       context.clearRect(0, 0, canvasWidth, canvasHeight);
+
       drawCanvasBackground();
+      drawBlackRoad(230, 0, 40, canvasHeight);
+      drawBlackRoad(340, 0, 40, canvasHeight);
       npZones.forEach((items, index, itemsArr) => {
+        let startConjunction;
+        let endConjunction;
         // console.log(index, itemsArr);
         if (items.positionYBegin > 0 && items.positionYEnd < canvasHeight) {
           if (items.item.zone_code === "01") {
+            const zoneCodes = ["03", "04", "07", "08"];
+            startConjunction = [
+              findConjunction(
+                index - 1,
+                "positionYEnd",
+                itemsArr[index - 1]?.positionYEnd,
+                zoneCodes,
+                itemsArr
+              ),
+            ];
+            endConjunction = [
+              findConjunction(
+                index + 1,
+                "positionYBegin",
+                itemsArr[index + 1]?.positionYBegin,
+                zoneCodes,
+                itemsArr
+              ),
+            ];
             drawText(context, items);
-            drawTWLTL(context, items.positionYBegin, items.positionYEnd);
+            drawDistanceText(context, items);
+            drawTWLTL(
+              context,
+              items.positionYBegin,
+              items.positionYEnd,
+              startConjunction,
+              endConjunction
+            );
           }
           if (items.item.zone_code === "02") {
+            const zoneCodes = ["03", "04", "07", "08"];
+
+            startConjunction = findConjunction(
+              index - 1,
+              "positionYEnd",
+              itemsArr[index - 1]?.positionYEnd,
+              zoneCodes,
+              itemsArr
+            );
+            endConjunction = findConjunction(
+              index + 1,
+              "positionYBegin",
+              itemsArr[index + 1]?.positionYBegin,
+              zoneCodes,
+              itemsArr
+            );
             drawText(context, items);
-            draw2DBYL(context, items.positionYBegin, items.positionYEnd);
-            if (["07", "08"].includes(itemsArr[index - 1]?.item.zone_code)) {
-              console.log("2DBYL1", items);
-              console.log(
-                itemsArr.filter(
-                  (items) =>
-                    items.positionYEnd === itemsArr[index - 1].positionYEnd &&
-                    ["07", "08"].includes(items.item.zone_code)
-                ).length
-              );
-            }
+            drawDistanceText(context, items);
+            draw2DBYL(
+              context,
+              items.positionYBegin,
+              items.positionYEnd,
+              startConjunction,
+              endConjunction
+            );
           }
           if (items.item.zone_code === "03") {
+            const zoneCodes = ["04", "07", "08"];
+
+            startConjunction = [
+              findConjunction(
+                index - 1,
+                "positionYEnd",
+                itemsArr[index - 1]?.positionYEnd,
+                zoneCodes,
+                itemsArr
+              ),
+            ];
+            endConjunction = [
+              findConjunction(
+                index + 1,
+                "positionYBegin",
+                itemsArr[index + 1]?.positionYBegin,
+                zoneCodes,
+                itemsArr
+              ),
+            ];
             drawText(context, items);
-            drawLTLSAME(context, items.positionYBegin, items.positionYEnd);
+            drawDistanceText(context, items);
+            drawLTLSAME(
+              context,
+              items.positionYBegin,
+              items.positionYEnd,
+              startConjunction,
+              endConjunction
+            );
           }
           if (items.item.zone_code === "04") {
+            const zoneCodes = ["03", "07", "08"];
+
+            startConjunction = [
+              findConjunction(
+                index - 1,
+                "positionYEnd",
+                itemsArr[index - 1]?.positionYEnd,
+                zoneCodes,
+                itemsArr
+              ),
+            ];
+            endConjunction = [
+              findConjunction(
+                index + 1,
+                "positionYBegin",
+                itemsArr[index + 1]?.positionYBegin,
+                zoneCodes,
+                itemsArr
+              ),
+            ];
             drawText(context, items);
-            drawLTLOPP(context, items.positionYBegin, items.positionYEnd);
+            drawDistanceText(context, items);
+            drawLTLOPP(
+              context,
+              items.positionYBegin,
+              items.positionYEnd,
+              startConjunction,
+              endConjunction
+            );
           }
           if (items.item.zone_code === "06") {
             drawText(context, items);
+            drawDistanceText(context, items);
             drawNONE(context, items.positionYBegin, items.positionYEnd);
           }
           if (items.item.zone_code === "07") {
             drawText(context, items);
+            drawDistanceText(context, items);
             drawLNoPass(context, items.positionYBegin, items.positionYEnd);
           }
           if (items.item.zone_code === "08") {
             drawText(context, items);
+            drawDistanceText(context, items);
             drawRNoPass(context, items.positionYBegin, items.positionYEnd);
           }
           if (items.item.zone_code === "09") {
             drawText(context, items);
+            drawDistanceText(context, items);
             drawLPass(context, items.positionYBegin, items.positionYEnd);
           }
           if (items.item.zone_code === "10") {
             drawText(context, items);
+            drawDistanceText(context, items);
             drawRPass(context, items.positionYBegin, items.positionYEnd);
           }
           if (items.item.zone_code === "11") {
             drawText(context, items);
+            drawDistanceText(context, items);
             drawExcluded(context, items.positionYBegin, items.positionYEnd);
           }
           if (items.item.zone_code === "12") {
             drawText(context, items);
+            drawDistanceText(context, items);
             drawUndetermined(context, items.positionYBegin, items.positionYEnd);
           }
         }
@@ -246,13 +358,13 @@ export const CanvasScrollInteraction: React.FC<
       >
         <canvas ref={canvasRef} width={canvasWidth} height={canvasHeight} />
       </div>
-      <button
+      {/* <button
         id="addLineButton"
         onClick={addLine}
         style={{ marginTop: "20px", padding: "10px", fontSize: "16px" }}
       >
         Add Line
-      </button>
+      </button> */}
     </div>
   );
 };

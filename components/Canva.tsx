@@ -1,7 +1,6 @@
 import { CanvasScrollInteraction } from "./CanvasScroll";
 
 import { data, passzData } from "./data.js";
-import { data3 } from "./data3.js";
 const canvaspageShift = 800;
 const canvasSacle = 1 * 1000;
 export function Canva() {
@@ -40,9 +39,9 @@ export function Canva() {
   let recommendedZones = data.npZonesArr[0].children.filter(
     (zone) => zone.study_type === "Recommended" // for now only for recommended zones
   );
- 
-  recommendedZones=[...recommendedZones,...passzData];
-  console.log(recommendedZones,passzData);
+
+  recommendedZones = [...recommendedZones, ...passzData];
+  // console.log(recommendedZones,passzData);
   recommendedZones.sort((a, b) => {
     if (a.study_type === b.study_type) {
       return a.b_trulog - b.b_trulog;
@@ -61,7 +60,7 @@ export function Canva() {
       item: item,
     };
   });
- 
+
   return (
     <div
       className="App"
@@ -74,7 +73,6 @@ export function Canva() {
     >
       {/* <CanvasLineDrawing data={data} /> */}
       <CanvasScrollInteraction
-        data={data3}
         cpArr={groupedByPositionYArray}
         recArr={recArr}
       />
