@@ -1,3 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+const lineDiff0 = 5;
+const lineDiff1 = 17;
+const lineDiff2 = 25;
+const lineDiff3 = 33;
+const lineDiff4 = 45;
 const drawLineWithStyle = (
   context: CanvasRenderingContext2D,
   x1: number,
@@ -16,22 +24,22 @@ const drawLineWithStyle = (
   context.lineWidth = width;
   context.stroke();
 };
-interface NPZones {
-  positionYBegin: number;
-  positionYEnd: number;
-  item: {
-    b_trulog: string;
-    e_trulog: string;
-    zone_code: string;
-  };
-}
+// interface NPZones {
+//   positionYBegin: number;
+//   positionYEnd: number;
+//   item: {
+//     b_trulog: number;
+//     e_trulog: number;
+//     zone_code: string;
+//   };
+// }
 export const drawConjuction = (
   context: CanvasRenderingContext2D,
   canvasX: number,
   positionYBegin: number,
   positionYEnd: number,
-  startConjunction: NPZones[],
-  endConjunction: NPZones[],
+  startConjunction: any,
+  endConjunction: any,
   subractValue: number,
   line1PointsX: number[],
   line2PointsX: number[],
@@ -71,12 +79,35 @@ export const drawConjuction = (
     positionYEnd
   );
 };
+
+type ZoneItem = {
+  zone_code:
+    | "01"
+    | "02"
+    | "03"
+    | "04"
+    | "06"
+    | "07"
+    | "08"
+    | "09"
+    | "10"
+    | "11"
+    | "12";
+  b_trulog: number;
+  e_trulog: number;
+  // other properties...
+};
+type Items = {
+  positionYBegin: number;
+  positionYEnd: number;
+  item: ZoneItem;
+};
 // Function to draw distance log text
 export const drawDistanceText = (
   context: CanvasRenderingContext2D,
-  items: any
+  items: Items
 ) => {
-  const colorCode = {
+  const colorCode: Record<ZoneItem["zone_code"], string> = {
     "01": "red",
     "02": "red",
     "03": "red",
@@ -89,7 +120,7 @@ export const drawDistanceText = (
     "11": "Purple",
     "12": "Purple",
   };
-  const color = colorCode[items.item.zone_code] ;
+  const color = colorCode[items.item.zone_code];
   const textXbegin = 215;
   const textXend = 395;
   const TextYcordinate = (items.positionYEnd + items.positionYBegin) / 2;
@@ -196,16 +227,16 @@ export const drawTWLTL = (
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
-  startConjunction: NPZones[],
-  endConjunction: NPZones[]
+  startConjunction: any,
+  endConjunction: any
 ) => {
   startConjunction = startConjunction.flat();
   endConjunction = endConjunction.flat();
   const subractValue = 5;
-  let line1 = [canvasX + 15, canvasX + 0];
-  let line2 = [canvasX + 25, canvasX + 15];
-  let line3 = [canvasX + 25, canvasX + 35];
-  let line4 = [canvasX + 35, canvasX + 50];
+  let line1 = [canvasX + lineDiff1, canvasX + lineDiff0];
+  let line2 = [canvasX + lineDiff2, canvasX + lineDiff1];
+  let line3 = [canvasX + lineDiff2, canvasX + lineDiff3];
+  let line4 = [canvasX + lineDiff3, canvasX + lineDiff4];
   if (startConjunction?.length > 1) {
     drawConjuction(
       context,
@@ -223,10 +254,10 @@ export const drawTWLTL = (
     positionYBegin = positionYBegin - subractValue;
   } else if (startConjunction?.length === 1) {
     if (startConjunction[0]?.item?.zone_code === "03") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 15];
-      line4 = [canvasX + 50, canvasX + 15];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff1];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff1];
       drawConjuction(
         context,
         canvasX,
@@ -243,10 +274,10 @@ export const drawTWLTL = (
       positionYBegin = positionYBegin - subractValue;
     }
     if (startConjunction[0]?.item?.zone_code === "04") {
-      line1 = [canvasX + 35, canvasX + 0];
-      line2 = [canvasX + 35, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 35];
-      line4 = [canvasX + 50, canvasX + 50];
+      line1 = [canvasX + lineDiff3, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff3, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
       drawConjuction(
         context,
         canvasX,
@@ -263,10 +294,10 @@ export const drawTWLTL = (
       positionYBegin = positionYBegin - subractValue;
     }
     if (startConjunction[0]?.item?.zone_code === "07") {
-      line1 = [canvasX + 15, canvasX + 0];
-      line2 = [canvasX + 25, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 35];
-      line4 = [canvasX + 50, canvasX + 50];
+      line1 = [canvasX + lineDiff1, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff2, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
       drawConjuction(
         context,
         canvasX,
@@ -283,10 +314,10 @@ export const drawTWLTL = (
       positionYBegin = positionYBegin - subractValue;
     }
     if (startConjunction[0]?.item?.zone_code === "08") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
 
       drawConjuction(
         context,
@@ -306,10 +337,10 @@ export const drawTWLTL = (
   }
 
   if (endConjunction?.length > 1) {
-    line1 = [canvasX + 0, canvasX + 15];
-    line2 = [canvasX + 15, canvasX + 25];
-    line3 = [canvasX + 35, canvasX + 25];
-    line4 = [canvasX + 50, canvasX + 35];
+    line1 = [canvasX + lineDiff0, canvasX + lineDiff1];
+    line2 = [canvasX + lineDiff1, canvasX + lineDiff2];
+    line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+    line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
     drawConjuction(
       context,
       canvasX,
@@ -326,10 +357,10 @@ export const drawTWLTL = (
     positionYEnd = positionYEnd + subractValue;
   } else if (endConjunction?.length === 1) {
     if (endConjunction[0]?.item?.zone_code === "03") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 15];
-      line4 = [canvasX + 50, canvasX + 15];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff1];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff1];
       drawConjuction(
         context,
         canvasX,
@@ -346,10 +377,10 @@ export const drawTWLTL = (
       positionYEnd = positionYEnd + subractValue;
     }
     if (endConjunction[0]?.item?.zone_code === "04") {
-      line1 = [canvasX + 35, canvasX + 0];
-      line2 = [canvasX + 35, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff3, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff3, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
       drawConjuction(
         context,
         canvasX,
@@ -366,10 +397,10 @@ export const drawTWLTL = (
       positionYEnd = positionYEnd + subractValue;
     }
     if (endConjunction[0]?.item?.zone_code === "07") {
-      line1 = [canvasX + 0, canvasX + 15];
-      line2 = [canvasX + 15, canvasX + 25];
-      line3 = [canvasX + 35, canvasX + 35];
-      line4 = [canvasX + 50, canvasX + 50];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff1];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff2];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
       drawConjuction(
         context,
         canvasX,
@@ -386,10 +417,10 @@ export const drawTWLTL = (
       positionYEnd = positionYEnd + subractValue;
     }
     if (endConjunction[0]?.item?.zone_code === "08") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
 
       drawConjuction(
         context,
@@ -410,32 +441,32 @@ export const drawTWLTL = (
 
   drawLineWithStyle(
     context,
-    canvasX + 0,
+    canvasX + lineDiff0,
     positionYBegin,
-    canvasX + 0,
+    canvasX + lineDiff0,
     positionYEnd
   );
   drawLineWithStyle(
     context,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYBegin,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYEnd,
     [5, 5]
   );
   drawLineWithStyle(
     context,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYBegin,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYEnd,
     [5, 5]
   );
   drawLineWithStyle(
     context,
-    canvasX + 50,
+    canvasX + lineDiff4,
     positionYBegin,
-    canvasX + 50,
+    canvasX + lineDiff4,
     positionYEnd
   );
 };
@@ -445,14 +476,14 @@ export function draw2DBYL(
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
-  startConjunction: NPZones[],
-  endConjunction: NPZones[]
+  startConjunction: any,
+  endConjunction: any
 ) {
   const subractValue = 5;
-  let line1 = [canvasX + 15, canvasX + 0];
-  let line2 = [canvasX + 25, canvasX + 15];
-  let line3 = [canvasX + 25, canvasX + 35];
-  let line4 = [canvasX + 35, canvasX + 50];
+  let line1 = [canvasX + lineDiff1, canvasX + lineDiff0];
+  let line2 = [canvasX + lineDiff2, canvasX + lineDiff1];
+  let line3 = [canvasX + lineDiff2, canvasX + lineDiff3];
+  let line4 = [canvasX + lineDiff3, canvasX + lineDiff4];
 
   const drawConjunctionForZone = (
     zoneCode: string,
@@ -461,28 +492,28 @@ export function draw2DBYL(
   ) => {
     switch (zoneCode) {
       case "03":
-        line1 = [canvasX + 0, canvasX + 0];
-        line2 = [canvasX + 15, canvasX + 15];
-        line3 = [canvasX + 35, canvasX + 15];
-        line4 = [canvasX + 50, canvasX + 15];
+        line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+        line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+        line3 = [canvasX + lineDiff3, canvasX + lineDiff1];
+        line4 = [canvasX + lineDiff4, canvasX + lineDiff1];
         break;
       case "04":
-        line1 = [canvasX + 35, canvasX + 0];
-        line2 = [canvasX + 35, canvasX + 15];
-        line3 = [canvasX + 35, canvasX + 35];
-        line4 = [canvasX + 50, canvasX + 50];
+        line1 = [canvasX + lineDiff3, canvasX + lineDiff0];
+        line2 = [canvasX + lineDiff3, canvasX + lineDiff1];
+        line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+        line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
         break;
       case "07":
-        line1 = [canvasX + 15, canvasX + 0];
-        line2 = [canvasX + 25, canvasX + 15];
-        line3 = [canvasX + 35, canvasX + 35];
-        line4 = [canvasX + 50, canvasX + 50];
+        line1 = [canvasX + lineDiff1, canvasX + lineDiff0];
+        line2 = [canvasX + lineDiff2, canvasX + lineDiff1];
+        line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+        line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
         break;
       case "08":
-        line1 = [canvasX + 0, canvasX + 0];
-        line2 = [canvasX + 15, canvasX + 15];
-        line3 = [canvasX + 35, canvasX + 25];
-        line4 = [canvasX + 50, canvasX + 35];
+        line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+        line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+        line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+        line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
         break;
       default:
         break;
@@ -525,17 +556,17 @@ export function draw2DBYL(
     positionYBegin -= subractValue;
   } else if (startConjunction?.length === 1) {
     positionYBegin = drawConjunctionForZone(
-      startConjunction[0].item.zone_code,
+      startConjunction[0]?.item?.zone_code,
       positionYBegin,
       true
     );
   }
 
   if (endConjunction?.length > 1) {
-    line1 = [canvasX + 0, canvasX + 15];
-    line2 = [canvasX + 15, canvasX + 25];
-    line3 = [canvasX + 35, canvasX + 25];
-    line4 = [canvasX + 50, canvasX + 35];
+    line1 = [canvasX + lineDiff0, canvasX + lineDiff1];
+    line2 = [canvasX + lineDiff1, canvasX + lineDiff2];
+    line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+    line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
     drawConjuction(
       context,
       canvasX,
@@ -561,33 +592,33 @@ export function draw2DBYL(
   // Line 1
   drawLineWithStyle(
     context,
-    canvasX + 0,
+    canvasX + lineDiff0,
     positionYBegin,
-    canvasX + 0,
+    canvasX + lineDiff0,
     positionYEnd
   );
   // Line 2
   drawLineWithStyle(
     context,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYBegin,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYEnd
   );
   // Line 3
   drawLineWithStyle(
     context,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYBegin,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYEnd
   );
   // Line 4
   drawLineWithStyle(
     context,
-    canvasX + 50,
+    canvasX + lineDiff4,
     positionYBegin,
-    canvasX + 50,
+    canvasX + lineDiff4,
     positionYEnd
   );
 }
@@ -597,16 +628,16 @@ export function drawLTLSAME(
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
-  startConjunction: NPZones[],
-  endConjunction: NPZones[]
+  startConjunction: any,
+  endConjunction: any
 ) {
   startConjunction = startConjunction.flat();
   endConjunction = endConjunction.flat();
   const subractValue = 5;
-  let line1 = [canvasX + 15, canvasX + 0];
-  let line2 = [canvasX + 15, canvasX + 0];
-  let line3 = [canvasX + 35, canvasX + 15];
-  let line4 = [canvasX + 35, canvasX + 15];
+  let line1 = [canvasX + lineDiff1, canvasX + lineDiff0];
+  let line2 = [canvasX + lineDiff1, canvasX + lineDiff0];
+  let line3 = [canvasX + lineDiff3, canvasX + lineDiff1];
+  let line4 = [canvasX + lineDiff3, canvasX + lineDiff1];
   if (startConjunction?.length > 1) {
     drawConjuction(
       context,
@@ -624,10 +655,10 @@ export function drawLTLSAME(
     positionYBegin = positionYBegin - subractValue;
   } else if (startConjunction?.length === 1) {
     if (startConjunction[0]?.item?.zone_code === "07") {
-      line1 = [canvasX + 15, canvasX + 0];
-      line2 = [canvasX + 25, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 35];
-      line4 = [canvasX + 50, canvasX + 50];
+      line1 = [canvasX + lineDiff1, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff2, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
       drawConjuction(
         context,
         canvasX,
@@ -644,10 +675,10 @@ export function drawLTLSAME(
       positionYBegin = positionYBegin - subractValue;
     }
     if (startConjunction[0]?.item?.zone_code === "08") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
 
       drawConjuction(
         context,
@@ -667,10 +698,10 @@ export function drawLTLSAME(
   }
 
   if (endConjunction?.length > 1) {
-    line1 = [canvasX + 0, canvasX + 15];
-    line2 = [canvasX + 15, canvasX + 25];
-    line3 = [canvasX + 35, canvasX + 25];
-    line4 = [canvasX + 50, canvasX + 35];
+    line1 = [canvasX + lineDiff0, canvasX + lineDiff1];
+    line2 = [canvasX + lineDiff1, canvasX + lineDiff2];
+    line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+    line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
     drawConjuction(
       context,
       canvasX,
@@ -687,10 +718,10 @@ export function drawLTLSAME(
     positionYEnd = positionYEnd + subractValue;
   } else if (endConjunction?.length === 1) {
     if (endConjunction[0]?.item?.zone_code === "04") {
-      line1 = [canvasX + 35, canvasX + 0];
-      line2 = [canvasX + 35, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff3, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff3, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
       drawConjuction(
         context,
         canvasX,
@@ -707,10 +738,10 @@ export function drawLTLSAME(
       positionYEnd = positionYEnd + subractValue;
     }
     if (endConjunction[0]?.item?.zone_code === "07") {
-      line1 = [canvasX + 0, canvasX + 15];
-      line2 = [canvasX + 15, canvasX + 25];
-      line3 = [canvasX + 35, canvasX + 35];
-      line4 = [canvasX + 50, canvasX + 50];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff1];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff2];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
       drawConjuction(
         context,
         canvasX,
@@ -727,10 +758,10 @@ export function drawLTLSAME(
       positionYEnd = positionYEnd + subractValue;
     }
     if (endConjunction[0]?.item?.zone_code === "08") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
 
       drawConjuction(
         context,
@@ -751,17 +782,17 @@ export function drawLTLSAME(
   // Line 1
   drawLineWithStyle(
     context,
-    canvasX + 0,
+    canvasX + lineDiff0,
     positionYBegin,
-    canvasX + 0,
+    canvasX + lineDiff0,
     positionYEnd
   );
   // Line 2
   drawLineWithStyle(
     context,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYBegin,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYEnd
   );
 }
@@ -771,17 +802,16 @@ export function drawLTLOPP(
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
-  startConjunction: NPZones[],
-  endConjunction: NPZones[]
+  startConjunction: any,
+  endConjunction: any
 ) {
-  console.log(endConjunction, startConjunction);
   startConjunction = startConjunction.flat();
   endConjunction = endConjunction.flat();
   const subractValue = 5;
-  let line1 = [canvasX + 15, canvasX + 35];
-  let line2 = [canvasX + 15, canvasX + 35];
-  let line3 = [canvasX + 35, canvasX + 50];
-  let line4 = [canvasX + 35, canvasX + 50];
+  let line1 = [canvasX + lineDiff1, canvasX + lineDiff3];
+  let line2 = [canvasX + lineDiff1, canvasX + lineDiff3];
+  let line3 = [canvasX + lineDiff3, canvasX + lineDiff4];
+  let line4 = [canvasX + lineDiff3, canvasX + lineDiff4];
   if (startConjunction?.length > 1) {
     drawConjuction(
       context,
@@ -799,10 +829,10 @@ export function drawLTLOPP(
     positionYBegin = positionYBegin - subractValue;
   } else if (startConjunction?.length === 1) {
     if (startConjunction[0]?.item?.zone_code === "07") {
-      line1 = [canvasX + 15, canvasX + 0];
-      line2 = [canvasX + 25, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 35];
-      line4 = [canvasX + 50, canvasX + 50];
+      line1 = [canvasX + lineDiff1, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff2, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
       drawConjuction(
         context,
         canvasX,
@@ -819,10 +849,10 @@ export function drawLTLOPP(
       positionYBegin = positionYBegin - subractValue;
     }
     if (startConjunction[0]?.item?.zone_code === "08") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
 
       drawConjuction(
         context,
@@ -842,10 +872,10 @@ export function drawLTLOPP(
   }
 
   if (endConjunction?.length > 1) {
-    line1 = [canvasX + 0, canvasX + 15];
-    line2 = [canvasX + 15, canvasX + 25];
-    line3 = [canvasX + 35, canvasX + 25];
-    line4 = [canvasX + 50, canvasX + 35];
+    line1 = [canvasX + lineDiff0, canvasX + lineDiff1];
+    line2 = [canvasX + lineDiff1, canvasX + lineDiff2];
+    line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+    line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
     drawConjuction(
       context,
       canvasX,
@@ -862,10 +892,10 @@ export function drawLTLOPP(
     positionYEnd = positionYEnd + subractValue;
   } else if (endConjunction?.length === 1) {
     if (endConjunction[0]?.item?.zone_code === "03") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 15];
-      line4 = [canvasX + 50, canvasX + 15];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff1];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff1];
       drawConjuction(
         context,
         canvasX,
@@ -883,10 +913,10 @@ export function drawLTLOPP(
     }
 
     if (endConjunction[0]?.item?.zone_code === "07") {
-      line1 = [canvasX + 0, canvasX + 15];
-      line2 = [canvasX + 15, canvasX + 25];
-      line3 = [canvasX + 35, canvasX + 35];
-      line4 = [canvasX + 50, canvasX + 50];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff1];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff2];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff3];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff4];
       drawConjuction(
         context,
         canvasX,
@@ -903,10 +933,10 @@ export function drawLTLOPP(
       positionYEnd = positionYEnd + subractValue;
     }
     if (endConjunction[0]?.item?.zone_code === "08") {
-      line1 = [canvasX + 0, canvasX + 0];
-      line2 = [canvasX + 15, canvasX + 15];
-      line3 = [canvasX + 35, canvasX + 25];
-      line4 = [canvasX + 50, canvasX + 35];
+      line1 = [canvasX + lineDiff0, canvasX + lineDiff0];
+      line2 = [canvasX + lineDiff1, canvasX + lineDiff1];
+      line3 = [canvasX + lineDiff3, canvasX + lineDiff2];
+      line4 = [canvasX + lineDiff4, canvasX + lineDiff3];
 
       drawConjuction(
         context,
@@ -927,17 +957,17 @@ export function drawLTLOPP(
   // Line 1
   drawLineWithStyle(
     context,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYBegin,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYEnd
   );
   // Line 2
   drawLineWithStyle(
     context,
-    canvasX + 50,
+    canvasX + lineDiff4,
     positionYBegin,
-    canvasX + 50,
+    canvasX + lineDiff4,
     positionYEnd
   );
 }
@@ -960,9 +990,9 @@ export function drawLNoPass(
   // Line 1
   drawLineWithStyle(
     context,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYBegin,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYEnd
   );
 }
@@ -975,9 +1005,9 @@ export function drawRNoPass(
   // Line 1
   drawLineWithStyle(
     context,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYBegin,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYEnd
   );
 }
@@ -990,9 +1020,9 @@ export function drawLPass(
   // Line 1
   drawLineWithStyle(
     context,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYBegin,
-    canvasX + 15,
+    canvasX + lineDiff1,
     positionYEnd,
     [5, 5]
   );
@@ -1006,9 +1036,9 @@ export function drawRPass(
   // Line 1
   drawLineWithStyle(
     context,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYBegin,
-    canvasX + 35,
+    canvasX + lineDiff3,
     positionYEnd,
     [5, 5]
   );
