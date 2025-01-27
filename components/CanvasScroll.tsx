@@ -30,6 +30,7 @@ interface CanvasScrollInteractionProps {
 export const CanvasScrollInteraction: React.FC<
   CanvasScrollInteractionProps
 > = ({ cpArr, recArr }) => {
+  console.log("CanvasScrollInteraction");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +64,12 @@ export const CanvasScrollInteraction: React.FC<
   }, []);
 
   useEffect(() => {
+    // if (
+    //   controlPoints[0].positionY < 740 ||
+    //   controlPoints[controlPoints.length - 1].positionY > -30
+    // )
+    //   return;
+    // console.log(controlPoints[0], controlPoints[controlPoints.length - 1]);
     const canvas = canvasRef.current;
     if (!canvas) return;
 

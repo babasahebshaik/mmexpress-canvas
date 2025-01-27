@@ -1,15 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CanvasScrollInteraction } from "./CanvasScroll";
 import { data } from "./data.js";
 import { processZones } from "./helperFunction";
+import MilePointModal from "./MilePointModal";
 
-// per pixel * per mile point in canvas window
+// Per pixel * per mile point in canvas window
 const canvasScale = 1 * 1000;
 
 export function Canva() {
+  const [milePointSearch, setMilePointSearch] = useState("");
+  const [searchKey, setSearchKey] = useState(0); // Key to force re-render
   const { controlsArr, npZonesArr } = data;
 
-  // genrate passzone
+  // Generate passzone
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resultPassZone = processZones(npZonesArr as any);
 
@@ -19,13 +22,16 @@ export function Canva() {
     );
   }, [controlsArr]);
 
-  // Calculate canvaspageShift based on the first control point's log_point
+  // Calculate canvasPageShift based on the first control point's log_point or search input
   const canvaspageShift = useMemo(() => {
     if (sortedControlsArr.length === 0) return 790; // Default shift if no control points
-    const firstLogPoint = Number(sortedControlsArr[0].log_point);
+    const firstLogPoint = milePointSearch
+      ? Number(milePointSearch)
+      : Number(sortedControlsArr[0].log_point);
     return Math.round(firstLogPoint * canvasScale) + 790;
-  }, [sortedControlsArr]);
+  }, [sortedControlsArr, milePointSearch]);
 
+  // Calculate positions for control points
   const cpArr = useMemo(() => {
     return sortedControlsArr.map((item) => {
       const positionY =
@@ -35,8 +41,9 @@ export function Canva() {
         item: item,
       };
     });
-  }, [sortedControlsArr]);
+  }, [sortedControlsArr, canvaspageShift]);
 
+  // Group control points by positionY
   const groupedByPositionYArray = useMemo(() => {
     const map = new Map();
     cpArr.forEach(({ positionY, item }) => {
@@ -48,6 +55,7 @@ export function Canva() {
     return Array.from(map.values());
   }, [cpArr]);
 
+  // Filter and process recommended zones
   const recommendedZones = useMemo(() => {
     let zones = npZonesArr[0].children.filter(
       (zone) => zone.study_type === "Recommended"
@@ -63,6 +71,7 @@ export function Canva() {
     return zones;
   }, [npZonesArr, resultPassZone]);
 
+  // Calculate positions for recommended zones
   const recArr = useMemo(() => {
     return recommendedZones.map((item) => {
       const positionYBegin =
@@ -75,21 +84,65 @@ export function Canva() {
         item: item,
       };
     });
-  }, [recommendedZones]);
+  }, [recommendedZones, canvaspageShift]);
+
+  // Handle the search input and force re-render
+  const handleSearch = () => {
+    if (!milePointSearch || isNaN(Number(milePointSearch))) {
+      alert("Please enter a valid mile point.");
+      return;
+    }
+    setSearchKey((prevKey) => prevKey + 1); // Increment key to trigger re-render
+  };
 
   return (
     <div
+      key={searchKey} // Force re-render of the entire component
       className="App"
       style={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         height: "98vh",
+        flexDirection: "column",
       }}
     >
+      {/* <div style={{ marginBottom: "10px" }}>
+        <input
+          type="text"
+          value={milePointSearch}
+          onChange={(e) => setMilePointSearch(e.target.value)}
+          placeholder="Enter mile point"
+          style={{
+            padding: "8px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+            marginRight: "10px",
+          }}
+        />
+        <button
+          onClick={handleSearch}
+          style={{
+            padding: "8px 12px",
+            backgroundColor: "#007BFF",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Search
+        </button>
+      </div> */}
+
       <CanvasScrollInteraction
         cpArr={groupedByPositionYArray}
         recArr={recArr}
+      />
+      <MilePointModal
+        milePointSearch={milePointSearch}
+        setMilePointSearch={setMilePointSearch}
+        handleSearch={handleSearch}
       />
     </div>
   );
