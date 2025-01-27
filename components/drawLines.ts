@@ -230,14 +230,42 @@ export const drawLines = (
     positionY: number,
     sideX: number,
     sideType: string,
-    controlPoint: ControlPoint
+    controlPoint: ControlPoint,
+    maxWidth: number = 200, // Maximum width before wrapping text
+    lineHeight: number = 12 // Line height for wrapped text
   ) => {
+    // Set text alignment and font
     context.textAlign = sideType.toLowerCase() as CanvasTextAlign;
-    context.fillText(
-      controlPoint.log_point + " " + controlPoint.descript,
-      sideX,
-      positionY
-    );
+    context.font = "9px Arial";
+
+    // Combine the log_point and descript into a single string
+    const text = `${controlPoint.log_point} ${controlPoint.descript}`;
+
+    // Split text into multiple lines if it exceeds maxWidth
+    const words = text.split(" ");
+    let currentLine = "";
+    const lines: string[] = [];
+
+    words.forEach((word) => {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const textWidth = context.measureText(testLine).width;
+
+      if (textWidth > maxWidth) {
+        // Push the current line and start a new one
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    });
+
+    // Push the last line
+    if (currentLine) lines.push(currentLine);
+
+    // Draw each line of text
+    lines.forEach((line, index) => {
+      context.fillText(line, sideX, positionY + index * lineHeight);
+    });
   };
 
   controlP.forEach((group) => {
@@ -251,7 +279,7 @@ export const drawLines = (
       } else if (controlPoint.side === "Right") {
         printControlPoints(
           group.positionY + i * gap,
-          600,
+          595,
           "Right",
           controlPoint
         );
@@ -259,7 +287,7 @@ export const drawLines = (
         printControlPoints(group.positionY + i * gap, 0, "Left", controlPoint);
         printControlPoints(
           group.positionY + i * gap,
-          600,
+          595,
           "Right",
           controlPoint
         );

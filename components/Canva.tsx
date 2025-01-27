@@ -1,11 +1,17 @@
 import { useMemo } from "react";
 import { CanvasScrollInteraction } from "./CanvasScroll";
-import { data, passzData } from "./data.js";
+import { data } from "./data.js";
+import { processZones } from "./helperFunction";
+
 // per pixel * per mile point in canvas window
 const canvasScale = 1 * 1000;
 
 export function Canva() {
   const { controlsArr, npZonesArr } = data;
+
+  // genrate passzone
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const resultPassZone = processZones(npZonesArr as any);
 
   const sortedControlsArr = useMemo(() => {
     return controlsArr[0].children.sort(
@@ -19,8 +25,6 @@ export function Canva() {
     const firstLogPoint = Number(sortedControlsArr[0].log_point);
     return Math.round(firstLogPoint * canvasScale) + 790;
   }, [sortedControlsArr]);
-
-  console.log(Number(sortedControlsArr[0].log_point) * 1000);
 
   const cpArr = useMemo(() => {
     return sortedControlsArr.map((item) => {
@@ -49,15 +53,15 @@ export function Canva() {
       (zone) => zone.study_type === "Recommended"
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    zones = [...zones, ...passzData] as any;
+    zones = [...zones, ...resultPassZone] as any;
     zones.sort((a, b) => {
       if (a.study_type === b.study_type) {
         return a.b_trulog - b.b_trulog;
       }
-      return a.study_type.localeCompare(b.study_type);
+      return a.study_type?.localeCompare(b.study_type);
     });
     return zones;
-  }, [npZonesArr, passzData]);
+  }, [npZonesArr, resultPassZone]);
 
   const recArr = useMemo(() => {
     return recommendedZones.map((item) => {
