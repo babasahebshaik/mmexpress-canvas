@@ -16,6 +16,7 @@ import {
   drawUndetermined,
 } from "./drawZones";
 import { findConjunction } from "./helperFunction";
+import { imageCache } from "./image-module";
 // Define the function
 export const drawLines = (
   context: CanvasRenderingContext2D,
@@ -227,21 +228,19 @@ export const drawLines = (
   });
 
   const printControlPoints = (
+    context: CanvasRenderingContext2D,
     positionY: number,
     sideX: number,
     sideType: string,
     controlPoint: ControlPoint,
-    maxWidth: number = 200, // Maximum width before wrapping text
-    lineHeight: number = 12 // Line height for wrapped text
+    maxWidth: number = 180,
+    lineHeight: number = 10
   ) => {
-    // Set text alignment and font
     context.textAlign = sideType.toLowerCase() as CanvasTextAlign;
     context.font = "9px Arial";
+    context.fillStyle = "black";
 
-    // Combine the log_point and descript into a single string
     const text = `${controlPoint.log_point} ${controlPoint.descript}`;
-
-    // Split text into multiple lines if it exceeds maxWidth
     const words = text.split(" ");
     let currentLine = "";
     const lines: string[] = [];
@@ -249,9 +248,7 @@ export const drawLines = (
     words.forEach((word) => {
       const testLine = currentLine ? `${currentLine} ${word}` : word;
       const textWidth = context.measureText(testLine).width;
-
       if (textWidth > maxWidth) {
-        // Push the current line and start a new one
         lines.push(currentLine);
         currentLine = word;
       } else {
@@ -259,39 +256,61 @@ export const drawLines = (
       }
     });
 
-    // Push the last line
     if (currentLine) lines.push(currentLine);
 
-    // Draw each line of text
     lines.forEach((line, index) => {
       context.fillText(line, sideX, positionY + index * lineHeight);
     });
+
+    // Use preloaded images
+    const img = imageCache[controlPoint.Type];
+    if (img) {
+      context.drawImage(img, sideX + 165, positionY - 5, 10, 10);
+    } else {
+      // console.error(`Image not found in cache for type: ${controlPoint.Type}`);
+    }
   };
 
-  controlP.forEach((group) => {
-    group.items.forEach((controlPoint: any, i: number) => {
-      const gap = 10;
-      context.font = "9px Arial";
-      context.fillStyle = "black";
+  const adjustPositionY = (
+    controlP: ControlPointGroup[],
+    minDifference = 10
+  ) => {
+    // Sort groups by positionY
+    controlP.sort((a, b) => a.positionY - b.positionY);
 
-      if (controlPoint.side === "Left") {
-        printControlPoints(group.positionY + i * gap, 0, "Left", controlPoint);
-      } else if (controlPoint.side === "Right") {
-        printControlPoints(
-          group.positionY + i * gap,
-          595,
-          "Right",
-          controlPoint
-        );
-      } else if (controlPoint.side === "Both") {
-        printControlPoints(group.positionY + i * gap, 0, "Left", controlPoint);
-        printControlPoints(
-          group.positionY + i * gap,
-          595,
-          "Right",
-          controlPoint
-        );
+    for (let i = 1; i < controlP.length; i++) {
+      // Ensure the difference between consecutive positionY values
+      if (controlP[i].positionY - controlP[i - 1].positionY < minDifference) {
+        controlP[i].positionY = controlP[i - 1].positionY + minDifference;
       }
+    }
+
+    return controlP;
+  };
+
+  const drawControlPoints = (
+    controlP: ControlPointGroup[],
+    context: CanvasRenderingContext2D
+  ) => {
+    const gap = 12;
+    const sideX = 420;
+
+    controlP.forEach((group) => {
+      group.items.forEach((controlPoint, i) => {
+        // Compute the positionY for the current controlPoint
+        const currentY = group.positionY + i * gap;
+
+        if (controlPoint.side === "Left") {
+          printControlPoints(context, currentY, 10, "Left", controlPoint);
+        } else if (controlPoint.side === "Right") {
+          printControlPoints(context, currentY, sideX, "Left", controlPoint);
+        } else if (controlPoint.side === "Both") {
+          printControlPoints(context, currentY, 10, "Left", controlPoint);
+          printControlPoints(context, currentY, sideX, "Left", controlPoint);
+        }
+      });
     });
-  });
+  };
+  const adjustedControlP = adjustPositionY(controlP, 10);
+  drawControlPoints(adjustedControlP, context);
 };

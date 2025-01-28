@@ -3,6 +3,7 @@ import { CanvasScrollInteraction } from "./CanvasScroll";
 import { data } from "./data.js";
 import { processZones } from "./helperFunction";
 import MilePointModal from "./MilePointModal";
+import { initializeImageMap, preloadImages } from "./image-module";
 
 // Per pixel * per mile point in canvas window
 const canvasScale = 1 * 1000;
@@ -10,8 +11,33 @@ const canvasScale = 1 * 1000;
 export function Canva() {
   const [milePointSearch, setMilePointSearch] = useState("");
   const [searchKey, setSearchKey] = useState(0); // Key to force re-render
-  const { controlsArr, npZonesArr } = data;
+  const { agency, controlsArr, npZonesArr } = data;
+  const controlImages = [
+    "County Boundary",
+    "MAINTENANCE BOUNDARY",
+    "Township Boundary",
+    "Corporation Limit",
+    "State Boundary",
+    "Bridge (Hwy Over Railroad)",
+    "Bridge",
+    "1-lane Bridge",
+    "Bridge (Hwy Over Hwy)",
+    "Cul De Sac",
+    "Road End",
+    "Hwy Under Railroad",
+    "Hwy Under Hwy",
+    "Intersection",
+    "Miscellaneous",
+    "Railroad",
+    "School Zone",
+    "Speed Zone",
+    "1-lane Tunnel",
+    "Tunnel",
+  ];
 
+  // Call preload once with all the control point types
+  preloadImages(controlImages);
+  initializeImageMap();
   // Generate passzone
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const resultPassZone = processZones(npZonesArr as any);
@@ -107,7 +133,7 @@ export function Canva() {
         flexDirection: "column",
       }}
     >
-      {/* <div style={{ marginBottom: "10px" }}>
+      <div style={{ marginBottom: "10px" }}>
         <input
           type="text"
           value={milePointSearch}
@@ -133,17 +159,28 @@ export function Canva() {
         >
           Search
         </button>
-      </div> */}
-
+      </div>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          width: "600px",
+          padding: "0px 60px 0px 60px",
+        }}
+      >
+        <h5>Control Points</h5>
+        <h5 style={{ marginLeft: "20px" }}>Length</h5>
+        <h5 style={{ marginRight: "20px" }}>Left</h5>
+        <h5 style={{ position: "relative", right: "7px" }}>C/L</h5>
+        <h5>Right</h5>
+        <h5>Length</h5>
+        <h5>Control Points</h5>
+      </div>
       <CanvasScrollInteraction
         cpArr={groupedByPositionYArray}
         recArr={recArr}
       />
-      <MilePointModal
-        milePointSearch={milePointSearch}
-        setMilePointSearch={setMilePointSearch}
-        handleSearch={handleSearch}
-      />
+      <MilePointModal  agencyName={agency.agencyName}/>
     </div>
   );
 }

@@ -5,6 +5,7 @@ export interface ControlPoint {
   log_point: string;
   descript: string;
   side: string;
+  Type: string;
 }
 
 export interface ControlPointGroup {
@@ -30,7 +31,7 @@ interface CanvasScrollInteractionProps {
 export const CanvasScrollInteraction: React.FC<
   CanvasScrollInteractionProps
 > = ({ cpArr, recArr }) => {
-  console.log("CanvasScrollInteraction");
+  // console.log("CanvasScrollInteraction");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -61,15 +62,9 @@ export const CanvasScrollInteraction: React.FC<
         container.removeEventListener("wheel", handleScroll);
       };
     }
-  }, []);
+  }, [controlPoints]);
 
   useEffect(() => {
-    // if (
-    //   controlPoints[0].positionY < 740 ||
-    //   controlPoints[controlPoints.length - 1].positionY > -30
-    // )
-    //   return;
-    // console.log(controlPoints[0], controlPoints[controlPoints.length - 1]);
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -92,6 +87,15 @@ export const CanvasScrollInteraction: React.FC<
   const handleVerticalScroll = (delta: number) => {
     const scrollAmount = delta > 0 ? -lineHeight : lineHeight;
 
+    if (scrollAmount < 0) {
+      if (
+        controlPoints[controlPoints.length - 1].positionY - scrollAmount <
+        740
+      )
+        return;
+    } else {
+      if (controlPoints[0].positionY - scrollAmount > 10) return;
+    }
     setControlPoints((prev) =>
       prev.map((group) => ({
         ...group,

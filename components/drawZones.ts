@@ -136,6 +136,17 @@ export const drawDistanceText = (
     context.fillStyle = color; // Text color
     context.textAlign = "center";
     context.textBaseline = "middle"; // Align text vertically
+    if (color === "green") {
+      context.setLineDash([5, 5]);
+    } else {
+      context.setLineDash([]);
+    }
+    context.beginPath();
+    context.strokeStyle = color;
+    context.lineWidth = 1;
+    context.moveTo(textXbegin - 15, positionYEnd + 5);
+    context.lineTo(textXbegin + 15, positionYEnd + 5);
+    context.stroke();
     context.fillText(label, textXbegin, positionYEnd); // Center of the box
   };
 
