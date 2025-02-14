@@ -1,65 +1,142 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CanvasScrollInteraction } from "./CanvasScroll";
 import { data } from "./data.js";
+import { data2 } from "./data2.js";
+import { data3 } from "./data3.js";
+import { data4 } from "./data4.js";
+import { compData } from "./compData.js";
 import { processZones } from "./helperFunction";
 import MilePointModal from "./MilePointModal";
-import { initializeImageMap, preloadImages } from "./image-module";
+import {
+  controlImages,
+  initializeImageMap,
+  preloadImages,
+} from "./image-module";
+import { processCompData } from "./comparisionReportHelper";
+import { ReportHeader } from "./reportHeader";
 
-// Per pixel * per mile point in canvas window
-const canvasScale = 1 * 1000;
+// Per pixel * per mile point in canvas window (1 mile = 1000 pixels)
+// const canvasScale = 1 * 1000;
 
 export function Canva() {
+  const [canvasScale, setCanvasScale] = useState(1000);
+
+  const handleScaleChange = (event) => {
+    setCanvasScale(event.target.value === "1.0" ? 1000 : 2000);
+    setSearchKey((prevKey) => prevKey + 1);
+  };
   const [milePointSearch, setMilePointSearch] = useState("");
   const [searchKey, setSearchKey] = useState(0); // Key to force re-render
-  const { agency, controlsArr, npZonesArr } = data;
-  const controlImages = [
-    "County Boundary",
-    "MAINTENANCE BOUNDARY",
-    "Township Boundary",
-    "Corporation Limit",
-    "State Boundary",
-    "Bridge (Hwy Over Railroad)",
-    "Bridge",
-    "1-lane Bridge",
-    "Bridge (Hwy Over Hwy)",
-    "Cul De Sac",
-    "Road End",
-    "Hwy Under Railroad",
-    "Hwy Under Hwy",
-    "Intersection",
-    "Miscellaneous",
-    "Railroad",
-    "School Zone",
-    "Speed Zone",
-    "1-lane Tunnel",
-    "Tunnel",
-  ];
+  const compDataProcessed = processCompData(compData, 0.003, false);
+  const { agency, reportType, sortOrder, controlsArr, npZonesArr, routesArr } =
+    compDataProcessed;
+
+  const routeDirection = routesArr.filter(
+    (route) => route.Name === controlsArr[0].GroupLabel
+  );
+
+  controlsArr[0].children = controlsArr[0]?.children?.sort(
+    (a, b) => Number(a.log_point) - Number(b.log_point)
+  );
+
+  const differenceNPZ = structuredClone(
+    npZonesArr[0].children?.filter((zone) =>
+      ["Difference"].includes(zone.study_type)
+    )
+  );
+
+  const currentZones = structuredClone(
+    npZonesArr[0].children?.filter((zone) =>
+      ["Current"].includes(zone.study_type)
+    )
+  );
+  const recommendedZones = structuredClone(
+    npZonesArr[0].children?.filter((zone) =>
+      ["Recommended"].includes(zone.study_type)
+    )
+  );
+
+  // const { agency, controlsArr, npZonesArr } = data;
+
+  const begControlObj = controlsArr[0]?.children[0];
+  const endControlObj =
+    controlsArr[0]?.children[controlsArr[0]?.children.length - 1];
+
+  const [bControl, eControl] = useMemo(() => {
+    const children = controlsArr[0].children;
+    return [
+      Number(children[0].log_point),
+      Number(children[children.length - 1].log_point),
+    ];
+  }, [controlsArr]);
+
+  console.log(bControl, eControl);
+
+  npZonesArr[0].children = npZonesArr[0].children?.filter(
+    (zone) => zone.study_type === "Recommended"
+    // (zone) => zone.study_type === "Current"
+  );
 
   // Call preload once with all the control point types
   preloadImages(controlImages);
   initializeImageMap();
+
   // Generate passzone
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const resultPassZone = processZones(npZonesArr as any);
+  const resultPassZone = processZones(npZonesArr as any, bControl, eControl);
+
+  const currentPassZone = processZones(
+    [{ ...npZonesArr[0], children: currentZones }] as any,
+    bControl,
+    eControl
+  );
+  // const recommendedPassZone = processZones(
+  //   [{ ...npZonesArr[0], children: recommendedZones }] as any,
+  //   bControl,
+  //   eControl
+  // );
 
   const sortedControlsArr = useMemo(() => {
-    return controlsArr[0].children.sort(
+    return controlsArr[0]?.children?.sort(
       (a, b) => Number(a.log_point) - Number(b.log_point)
     );
   }, [controlsArr]);
 
+  function mapMilesToObject(
+    start: number,
+    end: number,
+    scale: number
+  ): { [key: string]: number } {
+    let obj: { [key: string]: number } = {};
+    let index = 1;
+
+    for (let i = start; i <= end; i += scale) {
+      obj[String(index)] = parseFloat(i.toFixed(2)); // Convert index to string
+      index++;
+    }
+
+    return obj;
+  }
+
+  const milesMap = mapMilesToObject(
+    Number(bControl),
+    Number(eControl),
+    canvasScale === 1000 ? 1.0 : 0.5
+  );
+  console.log(milesMap);
+
   // Calculate canvasPageShift based on the first control point's log_point or search input
   const canvaspageShift = useMemo(() => {
-    if (sortedControlsArr.length === 0) return 790; // Default shift if no control points
+    if (sortedControlsArr?.length === 0) return 1000; // Default shift if no control points
     const firstLogPoint = milePointSearch
-      ? Number(milePointSearch)
+      ? milesMap[milePointSearch]
       : Number(sortedControlsArr[0].log_point);
-    return Math.round(firstLogPoint * canvasScale) + 790;
+    return Math.round(firstLogPoint * canvasScale) + 1000;
   }, [sortedControlsArr, milePointSearch]);
 
   // Calculate positions for control points
   const cpArr = useMemo(() => {
-    return sortedControlsArr.map((item) => {
+    return sortedControlsArr?.map((item) => {
       const positionY =
         Math.round(Number(item.log_point) * canvasScale) - canvaspageShift;
       return {
@@ -82,10 +159,12 @@ export function Canva() {
   }, [cpArr]);
 
   // Filter and process recommended zones
-  const recommendedZones = useMemo(() => {
-    let zones = npZonesArr[0].children.filter(
-      (zone) => zone.study_type === "Recommended"
-    );
+  const routeZones = useMemo(() => {
+    // let zones = npZonesArr[0].children.filter(
+    // // (zone) => zone.study_type === "Recommended"
+    // (zone) => zone.study_type === "Current"
+    // );
+    let zones = npZonesArr[0].children;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     zones = [...zones, ...resultPassZone] as any;
     zones.sort((a, b) => {
@@ -99,7 +178,7 @@ export function Canva() {
 
   // Calculate positions for recommended zones
   const recArr = useMemo(() => {
-    return recommendedZones.map((item) => {
+    return routeZones?.map((item) => {
       const positionYBegin =
         Math.round(Number(item.b_trulog) * canvasScale) - canvaspageShift;
       const positionYEnd =
@@ -110,7 +189,14 @@ export function Canva() {
         item: item,
       };
     });
-  }, [recommendedZones, canvaspageShift]);
+  }, [routeZones, canvaspageShift]);
+
+  // Sort recArr based on b_trulog
+  const sortedRecArr = useMemo(() => {
+    return recArr?.sort((a, b) => {
+      return Number(a.item.b_trulog) - Number(b.item.b_trulog);
+    });
+  }, [recArr]);
 
   // Handle the search input and force re-render
   const handleSearch = () => {
@@ -121,66 +207,100 @@ export function Canva() {
     setSearchKey((prevKey) => prevKey + 1); // Increment key to trigger re-render
   };
 
+  // Calculate positions for difference zones
+  // Sort and calculate positions for difference zones
+  const sortedDifferenceNPZ = useMemo(() => {
+    return differenceNPZ?.sort((a, b) => {
+      return Number(a.b_trulog) - Number(b.b_trulog);
+    });
+  }, [differenceNPZ]);
+
+  const diffZoneArr = useMemo(() => {
+    return sortedDifferenceNPZ?.map((item) => {
+      const positionYBegin =
+        Math.round(Number(item.b_trulog) * canvasScale) - canvaspageShift;
+      const positionYEnd =
+        Math.round(Number(item.e_trulog) * canvasScale) - canvaspageShift;
+      return {
+        positionYBegin: -positionYBegin,
+        positionYEnd: -positionYEnd,
+        item: item,
+      };
+    });
+  }, [sortedDifferenceNPZ, canvaspageShift]);
+
+  // console.log(canvasScale);
+
   return (
     <div
       key={searchKey} // Force re-render of the entire component
-      className="App"
       style={{
         display: "flex",
-        justifyContent: "center",
         alignItems: "center",
-        height: "98vh",
+        height: "100vh",
         flexDirection: "column",
       }}
     >
-      <div style={{ marginBottom: "10px" }}>
+      <ReportHeader
+        pageLength={Object.keys(milesMap).length}
+        routeName={controlsArr[0]?.GroupLabel}
+        routeDirection={routeDirection[0]?.Direction}
+        routelength={endControlObj?.log_point - begControlObj?.log_point}
+        agency={agency?.agencyName}
+        RouteNo={begControlObj?.route}
+        bControl={`${begControlObj.log_point} ${begControlObj.descript}`}
+        eControl={`${endControlObj.log_point} ${endControlObj.descript}`}
+        reportType={reportType}
+        sortOrder={sortOrder}
+        handleScaleChange={handleScaleChange}
+        canvasScale={canvasScale}
+        milePointSearch={milePointSearch}
+        setMilePointSearch={setMilePointSearch}
+        handleSearch={handleSearch}
+      />
+      {/* <div>
         <input
           type="text"
           value={milePointSearch}
           onChange={(e) => setMilePointSearch(e.target.value)}
-          placeholder="Enter mile point"
+          placeholder="1"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleSearch();
+            }
+          }}
           style={{
-            padding: "8px",
+            width: "50px",
             border: "1px solid #ccc",
             borderRadius: "4px",
-            marginRight: "10px",
           }}
         />
-        <button
-          onClick={handleSearch}
-          style={{
-            padding: "8px 12px",
-            backgroundColor: "#007BFF",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Search
-        </button>
-      </div>
+      </div> */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           width: "600px",
-          padding: "0px 60px 0px 60px",
+          padding: "0px 30px 0px 30px",
+          fontSize: "small",
         }}
       >
         <h5>Control Points</h5>
-        <h5 style={{ marginLeft: "20px" }}>Length</h5>
-        <h5 style={{ marginRight: "20px" }}>Left</h5>
-        <h5 style={{ position: "relative", right: "7px" }}>C/L</h5>
-        <h5>Right</h5>
-        <h5>Length</h5>
+        <h5 style={{ position: "relative", right: "-25px" }}>C-Length-R</h5>
+        <h5 style={{ position: "relative", right: "-5px" }}>C-Left-R</h5>
+        <h5 style={{ position: "relative", right: "-5px" }}>C/L</h5>
+        <h5 style={{ position: "relative", right: "0px" }}>C-Right-R</h5>
+        <h5 style={{ position: "relative", right: "20px" }}>C-Length-R</h5>
         <h5>Control Points</h5>
       </div>
       <CanvasScrollInteraction
         cpArr={groupedByPositionYArray}
-        recArr={recArr}
+        // diffZoneArr={[]}
+        recArr={[...sortedRecArr, ...diffZoneArr]} //***make sure difference should not get calculated in footer */
+        // recArr={[...sortedRecArr]}
+        canvasScale={canvasScale}
       />
-      <MilePointModal  agencyName={agency.agencyName}/>
+      <MilePointModal agencyName={agency.agencyName} />
     </div>
   );
 }

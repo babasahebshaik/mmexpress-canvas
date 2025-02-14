@@ -1,16 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import intersectionIcon from '../assets/images/ControlPointImages/Intersection_Icon.png';
-// import miscellanousIcon from '../assets/images/ControlPointImages/Miscellanous.png';
-// import bridgeIcon from '../assets/images/ControlPointImages/Bridge_icon.png';
-// import deadEndIcon from '../assets/images/ControlPointImages/DeadEnd_icon.png';
-// import highwayIcon from '../assets/images/ControlPointImages/Highway.png';
-// import boundaryIcon from '../assets/images/ControlPointImages/Boundary_icon.png';
-// import culDeSacIcon from '../assets/images/ControlPointImages/CulDeSac_icon.png';
-// import railroadIcon from '../assets/images/ControlPointImages/Railroad_Icon.png';
-// import schoolIcon from '../assets/images/ControlPointImages/School_icon.png';
-// import tunnelIcon from '../assets/images/ControlPointImages/Tunnel_icon.png';
-// import speedZoneIcon from '../assets/images/ControlPointImages/Speedzone_icon.png';
-
 export const IMAGE_MAP = new Map<string, any>();
 
 const boundaryBase64 =
@@ -245,8 +233,30 @@ export const preloadImages = (types: string[]) => {
       imageCache[type] = img;
     });
   } else {
-  //  console.warn(
-  //     "Image preloading skipped: Not running in a browser environment."
-  //   ); 
+    //  console.warn(
+    //     "Image preloading skipped: Not running in a browser environment."
+    //   );
   }
 };
+export const controlImages = [
+  "County Boundary",
+  "MAINTENANCE BOUNDARY",
+  "Township Boundary",
+  "Corporation Limit",
+  "State Boundary",
+  "Bridge (Hwy Over Railroad)",
+  "Bridge",
+  "1-lane Bridge",
+  "Bridge (Hwy Over Hwy)",
+  "Cul De Sac",
+  "Road End",
+  "Hwy Under Railroad",
+  "Hwy Under Hwy",
+  "Intersection",
+  "Miscellaneous",
+  "Railroad",
+  "School Zone",
+  "Speed Zone",
+  "1-lane Tunnel",
+  "Tunnel",
+];

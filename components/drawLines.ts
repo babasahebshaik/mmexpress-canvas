@@ -15,7 +15,6 @@ import {
   drawTWLTL,
   drawUndetermined,
 } from "./drawZones";
-import { findConjunction } from "./helperFunction";
 import { imageCache } from "./image-module";
 // Define the function
 export const drawLines = (
@@ -23,7 +22,8 @@ export const drawLines = (
   canvasWidth: number,
   canvasHeight: number,
   npZones: any,
-  controlP: ControlPointGroup[]
+  controlP: ControlPointGroup[],
+  // diffZoneArr: any
 ) => {
   context.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -57,175 +57,117 @@ export const drawLines = (
     context.stroke();
     context.closePath();
   };
-  drawCanvasBackground();
-  drawBlackRoad(230, 0, 40, canvasHeight);
-  drawBlackRoad(340, 0, 40, canvasHeight);
-  drawSolidBlackLine(200, 0, 200, canvasHeight);
-  drawSolidBlackLine(230, 0, 230, canvasHeight);
-  drawSolidBlackLine(380, 0, 380, canvasHeight);
-  drawSolidBlackLine(410, 0, 410, canvasHeight);
-
-  npZones.forEach((items: any, index: number, itemsArr: any) => {
-    let startConjunction;
-    let endConjunction;
-    // console.log(index, itemsArr);
+  const drawZones = (
+    context: CanvasRenderingContext2D,
+    items: any,
+    itemsArr: any,
+    canvasHeight: number
+  ) => {
     if (items.positionYBegin > 0 && items.positionYEnd < canvasHeight) {
-      if (items.item.zone_code === "01") {
-        const zoneCodes = ["03", "04", "07", "08"];
-        startConjunction = [
-          findConjunction(
-            index - 1,
-            "positionYEnd",
-            itemsArr[index - 1]?.positionYEnd,
-            zoneCodes,
-            itemsArr
-          ),
-        ];
-        endConjunction = [
-          findConjunction(
-            index + 1,
-            "positionYBegin",
-            itemsArr[index + 1]?.positionYBegin,
-            zoneCodes,
-            itemsArr
-          ),
-        ];
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawTWLTL(
-          context,
-          items.positionYBegin,
-          items.positionYEnd,
-          startConjunction,
-          endConjunction
-        );
-      }
-      if (items.item.zone_code === "02") {
-        const zoneCodes = ["03", "04", "07", "08"];
+      const zoneCodes = ["03", "04", "07", "08"];
+      const startConjunction = itemsArr.filter(
+        (item: any) =>
+          item.positionYEnd === items.positionYBegin &&
+          zoneCodes.includes(item.item.zone_code)
+      );
+      const endConjunction = itemsArr.filter(
+        (item: any) =>
+          item.positionYBegin === items.positionYEnd &&
+          zoneCodes.includes(item.item.zone_code)
+      );
 
-        startConjunction = findConjunction(
-          index - 1,
-          "positionYEnd",
-          itemsArr[index - 1]?.positionYEnd,
-          zoneCodes,
-          itemsArr
-        );
-        endConjunction = findConjunction(
-          index + 1,
-          "positionYBegin",
-          itemsArr[index + 1]?.positionYBegin,
-          zoneCodes,
-          itemsArr
-        );
-        drawText(context, items);
-        drawDistanceText(context, items);
-        draw2DBYL(
-          context,
-          items.positionYBegin,
-          items.positionYEnd,
-          startConjunction,
-          endConjunction
-        );
-      }
-      if (items.item.zone_code === "03") {
-        const zoneCodes = ["04", "07", "08"];
+      drawText(context, items);
+      drawDistanceText(context, items);
 
-        startConjunction = [
-          findConjunction(
-            index - 1,
-            "positionYEnd",
-            itemsArr[index - 1]?.positionYEnd,
-            zoneCodes,
-            itemsArr
-          ),
-        ];
-        endConjunction = [
-          findConjunction(
-            index + 1,
-            "positionYBegin",
-            itemsArr[index + 1]?.positionYBegin,
-            zoneCodes,
-            itemsArr
-          ),
-        ];
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawLTLSAME(
-          context,
-          items.positionYBegin,
-          items.positionYEnd,
-          startConjunction,
-          endConjunction
-        );
-      }
-      if (items.item.zone_code === "04") {
-        const zoneCodes = ["03", "07", "08"];
-
-        startConjunction = [
-          findConjunction(
-            index - 1,
-            "positionYEnd",
-            itemsArr[index - 1]?.positionYEnd,
-            zoneCodes,
-            itemsArr
-          ),
-        ];
-        endConjunction = [
-          findConjunction(
-            index + 1,
-            "positionYBegin",
-            itemsArr[index + 1]?.positionYBegin,
-            zoneCodes,
-            itemsArr
-          ),
-        ];
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawLTLOPP(
-          context,
-          items.positionYBegin,
-          items.positionYEnd,
-          startConjunction,
-          endConjunction
-        );
-      }
-      if (items.item.zone_code === "06") {
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawNONE(context, items.positionYBegin, items.positionYEnd);
-      }
-      if (items.item.zone_code === "07") {
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawLNoPass(context, items.positionYBegin, items.positionYEnd);
-      }
-      if (items.item.zone_code === "08") {
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawRNoPass(context, items.positionYBegin, items.positionYEnd);
-      }
-      if (items.item.zone_code === "09") {
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawLPass(context, items.positionYBegin, items.positionYEnd);
-      }
-      if (items.item.zone_code === "10") {
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawRPass(context, items.positionYBegin, items.positionYEnd);
-      }
-      if (items.item.zone_code === "11") {
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawExcluded(context, items.positionYBegin, items.positionYEnd);
-      }
-      if (items.item.zone_code === "12") {
-        drawText(context, items);
-        drawDistanceText(context, items);
-        drawUndetermined(context, items.positionYBegin, items.positionYEnd);
+      switch (items.item.zone_code) {
+        case "01":
+          drawTWLTL(
+            context,
+            items.positionYBegin,
+            items.positionYEnd,
+            startConjunction,
+            endConjunction
+          );
+          break;
+        case "02":
+          draw2DBYL(
+            context,
+            items.positionYBegin,
+            items.positionYEnd,
+            startConjunction,
+            endConjunction
+          );
+          break;
+        case "03":
+          drawLTLSAME(
+            context,
+            items.positionYBegin,
+            items.positionYEnd,
+            startConjunction,
+            endConjunction
+          );
+          break;
+        case "04":
+          drawLTLOPP(
+            context,
+            items.positionYBegin,
+            items.positionYEnd,
+            startConjunction,
+            endConjunction
+          );
+          break;
+        case "06":
+          drawNONE(context, items.positionYBegin, items.positionYEnd);
+          break;
+        case "07":
+          drawLNoPass(
+            context,
+            items.positionYBegin,
+            items.positionYEnd,
+            items.item.type ? items.item.type : "#FFD700"
+          );
+          break;
+        case "08":
+          drawRNoPass(
+            context,
+            items.positionYBegin,
+            items.positionYEnd,
+            items.item.type ? items.item.type : "#FFD700"
+          );
+          break;
+        case "09":
+          drawLPass(context, items.positionYBegin, items.positionYEnd);
+          break;
+        case "10":
+          drawRPass(context, items.positionYBegin, items.positionYEnd);
+          break;
+        case "11":
+          drawExcluded(context, items.positionYBegin, items.positionYEnd);
+          break;
+        case "12":
+          drawUndetermined(context, items.positionYBegin, items.positionYEnd);
+          break;
+        default:
+          break;
       }
     }
+  };
+
+  drawCanvasBackground();
+  drawBlackRoad(240, 0, 60, canvasHeight);
+  drawBlackRoad(350, 0, 60, canvasHeight);
+  drawSolidBlackLine(180, 0, 180, canvasHeight);
+  drawSolidBlackLine(240, 0, 240, canvasHeight);
+  drawSolidBlackLine(410, 0, 410, canvasHeight);
+  drawSolidBlackLine(470, 0, 470, canvasHeight);
+
+  // Usage in drawLines function
+  npZones.forEach((items: any, index: number, itemsArr: any) => {
+    drawZones(context, items, itemsArr, canvasHeight);
   });
+  // diffZoneArr.forEach((items: any, index: number, itemsArr: any) => {
+  //   drawZones(context, items, itemsArr, canvasHeight);
+  // });
 
   const printControlPoints = (
     context: CanvasRenderingContext2D,
@@ -233,11 +175,11 @@ export const drawLines = (
     sideX: number,
     sideType: string,
     controlPoint: ControlPoint,
-    maxWidth: number = 180,
-    lineHeight: number = 10
+    maxWidth: number = 170,
+    lineHeight: number = 6
   ) => {
     context.textAlign = sideType.toLowerCase() as CanvasTextAlign;
-    context.font = "9px Arial";
+    context.font = "8px Arial";
     context.fillStyle = "black";
 
     const text = `${controlPoint.log_point} ${controlPoint.descript}`;
@@ -265,7 +207,7 @@ export const drawLines = (
     // Use preloaded images
     const img = imageCache[controlPoint.Type];
     if (img) {
-      context.drawImage(img, sideX + 165, positionY - 5, 10, 10);
+      context.drawImage(img, sideX + 150, positionY - 5, 10, 10);
     } else {
       // console.error(`Image not found in cache for type: ${controlPoint.Type}`);
     }
@@ -293,7 +235,7 @@ export const drawLines = (
     context: CanvasRenderingContext2D
   ) => {
     const gap = 12;
-    const sideX = 420;
+    const sideX = 480;
 
     controlP.forEach((group) => {
       group.items.forEach((controlPoint, i) => {
@@ -303,10 +245,10 @@ export const drawLines = (
         if (controlPoint.side === "Left") {
           printControlPoints(context, currentY, 10, "Left", controlPoint);
         } else if (controlPoint.side === "Right") {
-          printControlPoints(context, currentY, sideX, "Left", controlPoint);
+          printControlPoints(context, currentY, sideX, "Left", controlPoint); // this is for the right side
         } else if (controlPoint.side === "Both") {
           printControlPoints(context, currentY, 10, "Left", controlPoint);
-          printControlPoints(context, currentY, sideX, "Left", controlPoint);
+          printControlPoints(context, currentY, sideX, "Left", controlPoint); // this is for the right side
         }
       });
     });

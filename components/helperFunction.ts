@@ -1,30 +1,9 @@
-type NPZones = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-};
-
-export const findConjunction = (
-  index: number,
-  positionKey: keyof NPZones,
-  positionValue: number,
-  zoneCodes: string[],
-  itemsArr: NPZones[]
-) => {
-  if (zoneCodes.includes(itemsArr[index]?.item.zone_code)) {
-    return itemsArr.filter(
-      (items) =>
-        items[positionKey] === positionValue &&
-        zoneCodes.includes(items.item.zone_code)
-    );
-  }
-  return null;
-};
-
 // Function to generate new passzone objects based on the gap
 const generatePasszone = (
   prevETrulog: number,
   currBTrulog: number,
-  zoneCode: string
+  zoneCode: string,
+  study_type: string
 ) => {
   if (prevETrulog === currBTrulog) return null;
 
@@ -33,7 +12,7 @@ const generatePasszone = (
     e_trulog: currBTrulog,
     zone_code: zoneCode === "07" ? "09" : "10",
     rtecode: "",
-    study_type: "",
+    study_type: study_type,
     s_date: "",
     zone_orig: "",
     upduser: "",
@@ -72,8 +51,8 @@ const groupAndSortData = (
           !["07", "09", "10"].includes(item.zone_code)
       )
       .sort(
-        (a: { b_trulog: number }, b: { b_trulog: number }) =>
-          a.b_trulog - b.b_trulog
+        (a: { e_trulog: number }, b: { e_trulog: number }) =>
+          a.e_trulog - b.e_trulog
       ),
   };
 };
@@ -99,26 +78,32 @@ const adjustOverlaps = (array: { b_trulog: number; e_trulog: number }[]) => {
       next.b_trulog = current.e_trulog;
     }
   }
-  return array;
+  return array.filter((item) => !(item.b_trulog === item.e_trulog));
 };
 
 // Main processing function
-export const processZones = (npZonesArr: NPZoneItem[]) => {
+export const processZones = (
+  npZonesArr: NPZoneItem[],
+  bControl: number,
+  eControl: number
+) => {
   const customGroupedData = groupAndSortData(npZonesArr);
   const passzoneData = new Map();
 
   (Object.keys(customGroupedData) as Array<"07" | "08">).forEach((zoneCode) => {
     if (!["07", "08"].includes(zoneCode)) return;
 
-    let prevETrulog: number | null = null;
+    let prevETrulog: number | null = Number(bControl);
+    let lastStudyType: string | null = null;
 
     customGroupedData[zoneCode].forEach(
-      (item: { b_trulog: number; e_trulog: number }) => {
+      (item: { b_trulog: number; e_trulog: number; study_type: string }) => {
         if (prevETrulog !== null && prevETrulog !== item.b_trulog) {
           const passzone = generatePasszone(
             prevETrulog,
             item.b_trulog,
-            zoneCode
+            zoneCode,
+            item.study_type
           );
           if (passzone) {
             const passzoneKey = passzone.zone_code;
@@ -129,8 +114,26 @@ export const processZones = (npZonesArr: NPZoneItem[]) => {
           }
         }
         prevETrulog = item.e_trulog;
+        lastStudyType = item.study_type;
       }
     );
+
+    // Generate passzone between last prevETrulog and eControl if there is a gap
+    if (prevETrulog !== null && prevETrulog < eControl && lastStudyType) {
+      const finalPasszone = generatePasszone(
+        prevETrulog,
+        eControl,
+        zoneCode,
+        lastStudyType
+      );
+      if (finalPasszone) {
+        const passzoneKey = finalPasszone.zone_code;
+        if (!passzoneData.has(passzoneKey)) {
+          passzoneData.set(passzoneKey, []);
+        }
+        passzoneData.get(passzoneKey).push(finalPasszone);
+      }
+    }
   });
 
   // Merge and process the passzones
@@ -138,7 +141,6 @@ export const processZones = (npZonesArr: NPZoneItem[]) => {
     ...(passzoneData.get("10") || []),
     ...(passzoneData.get("09") || []),
   ];
-
   const uniqueArray = removeDuplicates(mergedArray);
   uniqueArray.sort(
     (a: { b_trulog: number }, b: { b_trulog: number }) =>
