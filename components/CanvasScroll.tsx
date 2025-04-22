@@ -28,26 +28,39 @@ interface CanvasScrollInteractionProps {
   // diffZoneArr: NPZones[];
   recArr: NPZones[];
   canvasScale: number;
+  handleScrollPageNumberRef: (value: ControlPointGroup) => void;
+  stripeLength?: number;
+  gapLength?: number;
 }
-const STRIPE_LENGTH = 10;
-const GAP_LENGTH = 30;
-const stripeGapRatio = STRIPE_LENGTH / (STRIPE_LENGTH + GAP_LENGTH);
+// const STRIPE_LENGTH = 10;
+// const GAP_LENGTH = 30;
+// const stripeGapRatio = STRIPE_LENGTH / (STRIPE_LENGTH + GAP_LENGTH);
 
 export const CanvasScrollInteraction: React.FC<
   CanvasScrollInteractionProps
-> = ({ cpArr, recArr, canvasScale }) => {
-  // console.log(diffZoneArr);
-  // console.log("CanvasScrollInteraction");
+> = ({ cpArr, recArr, canvasScale, handleScrollPageNumberRef,stripeLength=10,gapLength=30 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
+  const stripeGapRatio = stripeLength / (stripeLength + gapLength);
   const [controlPoints, setControlPoints] = useState(cpArr);
   const [npZones, setNPZones] = useState(recArr);
   // const [diffZone, setDiffZone] = useState(diffZoneArr);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  console.log(npZones);
 
+  const findSmallestPositivePositionY = (
+    controlPoints: ControlPointGroup[]
+  ) => {
+    return controlPoints.reduce(
+      (minPoint, point) => {
+        if (point.positionY > 0 && point.positionY < minPoint.positionY) {
+          return point;
+        }
+        return minPoint;
+      },
+      { positionY: Infinity, items: [] } as ControlPointGroup
+    );
+  };
   const lineHeight = 50;
   const canvasWidth = 650;
   const canvasHeight = 1000;
@@ -56,6 +69,9 @@ export const CanvasScrollInteraction: React.FC<
     const container = containerRef.current;
 
     if (container) {
+      handleScrollPageNumberRef(
+        structuredClone(findSmallestPositivePositionY(controlPoints))
+      );
       const handleScroll = (event: WheelEvent) => {
         if (event.ctrlKey) {
           handleZoom(event as WheelEvent);
@@ -174,7 +190,7 @@ export const CanvasScrollInteraction: React.FC<
       case "01":
         if (lengthType === "FULL LENGTH") {
           const length = zone.item.e_trulog - zone.item.b_trulog;
-          // console.log(2 * length + 2 * length * stripeGapRatio);
+
           onPageNp += 2 * length + 2 * length * stripeGapRatio;
         }
         if (lengthType === "PARTIAL LENGTH BEGIN") {
@@ -266,7 +282,6 @@ export const CanvasScrollInteraction: React.FC<
         // Handle other cases
         break;
       case "07":
-        // console.log("07", lengthType, zone.positionYBegin, zone.positionYEnd);
         if (lengthType === "FULL LENGTH") {
           onPageNp += zone.item.e_trulog - zone.item.b_trulog;
         }
@@ -289,7 +304,6 @@ export const CanvasScrollInteraction: React.FC<
         // Handle other cases
         break;
       case "08":
-        // console.log("08", lengthType, zone.positionYBegin, zone.positionYEnd);
         if (lengthType === "FULL LENGTH") {
           onPageNp += zone.item.e_trulog - zone.item.b_trulog;
         }
@@ -312,7 +326,6 @@ export const CanvasScrollInteraction: React.FC<
         // Handle other cases
         break;
       case "09":
-        // console.log("09", lengthType);
         if (lengthType === "FULL LENGTH") {
           onPagePass += zone.item.e_trulog - zone.item.b_trulog;
         }
@@ -335,7 +348,6 @@ export const CanvasScrollInteraction: React.FC<
         // Handle other cases
         break;
       case "10":
-        // console.log("10", lengthType);
         if (lengthType === "FULL LENGTH") {
           onPagePass += zone.item.e_trulog - zone.item.b_trulog;
         }
@@ -366,42 +378,34 @@ export const CanvasScrollInteraction: React.FC<
   npZones
     ?.filter((zone) => zone.positionYBegin > 0)
     ?.forEach((item) => {
-      if (item.item?.study_type !== "Difference") {
-        // this is for the NP zones and pass zones which are visible on the screen window with  start and end points
-        if (item.positionYBegin < canvasHeight && item.positionYEnd > 0) {
-          getZoneLength(item, "FULL LENGTH");
-        }
-        // this is for the NP zones and pass zones which are visible on the screen window with  partially start and end points
-        if (
-          item.positionYBegin > 0 &&
-          item.positionYBegin < canvasHeight &&
-          !(item.positionYEnd > 0 && item.positionYEnd < canvasHeight)
-        ) {
-          getZoneLength(item, "PARTIAL LENGTH BEGIN");
-        }
-        if (
-          !(item.positionYBegin > 0 && item.positionYBegin < canvasHeight) &&
-          item.positionYEnd > 0 &&
-          item.positionYEnd < canvasHeight
-        ) {
-          getZoneLength(item, "PARTIAL LENGTH END");
-        }
-        if (item.positionYBegin > canvasHeight && item.positionYEnd < 0) {
-          getZoneLength(item, "NO BEGIN AND END VISIBLE");
-        }
-        if (item.positionYBegin > 0) {
-          getZoneLength(item, "ALL VIEWED LENGTH");
-        }
+      // if (item.item?.study_type !== "Difference") {
+      // this is for the NP zones and pass zones which are visible on the screen window with  start and end points
+      if (item.positionYBegin < canvasHeight && item.positionYEnd > 0) {
+        getZoneLength(item, "FULL LENGTH");
       }
+      // this is for the NP zones and pass zones which are visible on the screen window with  partially start and end points
+      if (
+        item.positionYBegin > 0 &&
+        item.positionYBegin < canvasHeight &&
+        !(item.positionYEnd > 0 && item.positionYEnd < canvasHeight)
+      ) {
+        getZoneLength(item, "PARTIAL LENGTH BEGIN");
+      }
+      if (
+        !(item.positionYBegin > 0 && item.positionYBegin < canvasHeight) &&
+        item.positionYEnd > 0 &&
+        item.positionYEnd < canvasHeight
+      ) {
+        getZoneLength(item, "PARTIAL LENGTH END");
+      }
+      if (item.positionYBegin > canvasHeight && item.positionYEnd < 0) {
+        getZoneLength(item, "NO BEGIN AND END VISIBLE");
+      }
+      if (item.positionYBegin > 0) {
+        getZoneLength(item, "ALL VIEWED LENGTH");
+      }
+      // }
     });
-
-  // console.log(
-  //   onPageNp.toFixed(3),
-  //   "pass:",
-  //   onPagePass.toFixed(3),
-  //   accumTotalNP.toFixed(3),
-  //   (accumTotalPass * stripeGapRatio).toFixed(3)
-  // );
 
   return (
     <>
@@ -446,7 +450,7 @@ export const CanvasScrollInteraction: React.FC<
           </span>
         </div>
         <p style={{ display: "flex", justifyContent: "center" }}>
-          ©2025 MasterMind, LLC - MasterSuite
+          ©2025 MasterMind, LLC - MapsterStudio
         </p>
       </div>
     </>

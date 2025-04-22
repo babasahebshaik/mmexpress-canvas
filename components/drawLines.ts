@@ -23,6 +23,7 @@ export const drawLines = (
   canvasHeight: number,
   npZones: any,
   controlP: ControlPointGroup[],
+  reportType: string
   // diffZoneArr: any
 ) => {
   context.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -77,11 +78,19 @@ export const drawLines = (
       );
 
       drawText(context, items);
-      drawDistanceText(context, items);
+      // not printing all mile log points based on zone code and print_beg and print_end. important for AllComparasionMileLogPoints flag
+      const isDrawDistance =
+        ["09", "10"].includes(items.item.zone_code) ||
+        "Difference" === items.item.study_type
+          ? true
+          : !!(items.item.print_beg && items.item.print_end);
+      // console.log("isDrawDistance", isDrawDistance, items.item.study_type);
+      if (isDrawDistance) drawDistanceText(context, items);
 
       switch (items.item.zone_code) {
         case "01":
           drawTWLTL(
+            items,
             context,
             items.positionYBegin,
             items.positionYEnd,
@@ -91,6 +100,7 @@ export const drawLines = (
           break;
         case "02":
           draw2DBYL(
+            items,
             context,
             items.positionYBegin,
             items.positionYEnd,
@@ -100,6 +110,7 @@ export const drawLines = (
           break;
         case "03":
           drawLTLSAME(
+            items,
             context,
             items.positionYBegin,
             items.positionYEnd,
@@ -109,6 +120,7 @@ export const drawLines = (
           break;
         case "04":
           drawLTLOPP(
+            items,
             context,
             items.positionYBegin,
             items.positionYEnd,
@@ -117,10 +129,11 @@ export const drawLines = (
           );
           break;
         case "06":
-          drawNONE(context, items.positionYBegin, items.positionYEnd);
+          drawNONE(items, context, items.positionYBegin, items.positionYEnd);
           break;
         case "07":
           drawLNoPass(
+            items,
             context,
             items.positionYBegin,
             items.positionYEnd,
@@ -129,6 +142,7 @@ export const drawLines = (
           break;
         case "08":
           drawRNoPass(
+            items,
             context,
             items.positionYBegin,
             items.positionYEnd,
@@ -136,16 +150,32 @@ export const drawLines = (
           );
           break;
         case "09":
-          drawLPass(context, items.positionYBegin, items.positionYEnd);
+          if (items.item.isDrawLine === false) {
+            return;
+          }
+          drawLPass(items, context, items.positionYBegin, items.positionYEnd);
           break;
         case "10":
-          drawRPass(context, items.positionYBegin, items.positionYEnd);
+          if (items.item.isDrawLine === false) {
+            return;
+          }
+          drawRPass(items, context, items.positionYBegin, items.positionYEnd);
           break;
         case "11":
-          drawExcluded(context, items.positionYBegin, items.positionYEnd);
+          drawExcluded(
+            items,
+            context,
+            items.positionYBegin,
+            items.positionYEnd
+          );
           break;
         case "12":
-          drawUndetermined(context, items.positionYBegin, items.positionYEnd);
+          drawUndetermined(
+            items,
+            context,
+            items.positionYBegin,
+            items.positionYEnd
+          );
           break;
         default:
           break;

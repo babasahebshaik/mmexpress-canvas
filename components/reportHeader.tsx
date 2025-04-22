@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
+
 interface ReportHeaderProps {
+  foundKeysLengthPage: number;
   pageLength: number;
   routeName: string;
   routeDirection: string;
@@ -9,14 +12,13 @@ interface ReportHeaderProps {
   eControl: string;
   reportType: string;
   sortOrder: string;
-  handleScaleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handleScaleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   canvasScale: number;
-  milePointSearch: string;
-  setMilePointSearch: (value: string) => void;
-  handleSearch: () => void;
+  handleSearch: (value: string) => void;
 }
 
 export const ReportHeader = ({
+  foundKeysLengthPage,
   pageLength,
   routeName,
   routeDirection,
@@ -29,8 +31,6 @@ export const ReportHeader = ({
   sortOrder,
   canvasScale,
   handleScaleChange,
-  milePointSearch,
-  setMilePointSearch,
   handleSearch,
 }: ReportHeaderProps) => {
   const reportStudyType = reportType.includes("RECOMMENDED")
@@ -49,23 +49,14 @@ export const ReportHeader = ({
   };
 
   const formattedReportType = capitalizeWords(
-    `${reportTypeBase} ${reportStudyType}`.toLowerCase()
+    `${reportStudyType} ${reportTypeBase} `.toLowerCase()
   );
 
-  // function mapMilesToObject(start: number, end: number, scale: number) {
-  //   const obj = {};
-  //   let index = 1;
+  const [pageInput, setPageInput] = useState(foundKeysLengthPage.toString());
 
-  //   for (let i = start; i <= end; i += scale) {
-  //     obj[index] = parseFloat(i.toFixed(2)); // Ensures proper decimal formatting
-  //     index++;
-  //   }
-
-  //   return obj;
-  // }
-
-  // const milesMap = mapMilesToObject(Number(startControl), Number(endControl), canvasScale === 1000 ? 1.0 : 0.5);
-  // console.log(milesMap, canvasScale === 1000 ? 1.0 : 0.5,startControl, endControl);
+  useEffect(() => {
+    setPageInput(foundKeysLengthPage.toString());
+  }, [foundKeysLengthPage]);
 
   return (
     <div
@@ -119,17 +110,17 @@ export const ReportHeader = ({
             Page:
             <input
               type="number"
-              value={milePointSearch}
+              value={pageInput}
               onChange={(e) => {
-                const value = Number(e.target.value);
-                if (value > pageLength || value < 1) {
-                  setMilePointSearch("1");
-                } else setMilePointSearch(e.target.value);
+                const value = e.target.value;
+                if (Number(value) > pageLength || Number(value) < 1) {
+                  setPageInput("");
+                } else setPageInput(value);
               }}
               placeholder="1"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  handleSearch();
+                  handleSearch(pageInput);
                 }
               }}
               style={{
@@ -137,10 +128,10 @@ export const ReportHeader = ({
                 border: "1px solid #ccc",
                 borderRadius: "4px",
                 textAlign: "center",
-                marginLeft: "4px",
+                marginLeft: "6px",
               }}
             />
-            <b>/{pageLength}</b>
+            <b> /{pageLength}</b>
           </p>
           <p style={{ fontSize: "small" }}>
             Scale:{" "}

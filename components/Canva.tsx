@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { CanvasScrollInteraction } from "./CanvasScroll";
+import { useMemo, useState, useRef } from "react";
+import { CanvasScrollInteraction, ControlPointGroup } from "./CanvasScroll";
 import { data } from "./data.js";
 import { data2 } from "./data2.js";
 import { data3 } from "./data3.js";
 import { data4 } from "./data4.js";
 import { compData } from "./compData.js";
+import { compDataCur } from "./compDataCur.js";
 import { processZones } from "./helperFunction";
 import MilePointModal from "./MilePointModal";
 import {
@@ -14,22 +15,56 @@ import {
 } from "./image-module";
 import { processCompData } from "./comparisionReportHelper";
 import { ReportHeader } from "./reportHeader";
-
-// Per pixel * per mile point in canvas window (1 mile = 1000 pixels)
-// const canvasScale = 1 * 1000;
+import { findKeysBelowLogPoint, mapMilesToObject } from "./pageCalcNumHelper";
+import ColumnHeader from "./columHeader";
+import {
+  combineZonesAndPass,
+  getControlPoints,
+  sepStudyTypeData,
+} from "./canvasHelper";
+import { ChildrenEntity1 } from "./types";
 
 export function Canva() {
+  // const minDistance = 0.003;
+  // const compMilePointAll = false;
+  const [minDistance, setMinDistance] = useState(0.003);
+  const [compMilePointAll, setCompMilePointAll] = useState(false);
+  const [stripeLength, setStripeLength] = useState(10);
+  const [gapLength, setGapLength] = useState(30);
+  const scrollPageNumberRef = useRef<ControlPointGroup>({
+    positionY: 0,
+    items: [],
+  });
   const [canvasScale, setCanvasScale] = useState(1000);
-
-  const handleScaleChange = (event) => {
-    setCanvasScale(event.target.value === "1.0" ? 1000 : 2000);
-    setSearchKey((prevKey) => prevKey + 1);
-  };
   const [milePointSearch, setMilePointSearch] = useState("");
   const [searchKey, setSearchKey] = useState(0); // Key to force re-render
-  const compDataProcessed = processCompData(compData, 0.003, false);
-  const { agency, reportType, sortOrder, controlsArr, npZonesArr, routesArr } =
-    compDataProcessed;
+  // const { agency, reportType, sortOrder, controlsArr, npZonesArr, routesArr } =
+  //   data;
+  const compDataProcessed = processCompData(
+    data,
+    minDistance,
+    compMilePointAll
+  );
+
+  const {
+    agency,
+    reportType,
+    sortOrder,
+    controlsArr,
+    npZonesArr,
+    routesArr,
+    studyType,
+  } = compDataProcessed;
+
+  const [reportStudyType, setReportStudyType] = useState(
+    studyType
+      ? studyType === "Recommended"
+        ? "RECOMMENDED"
+        : "CURRENT"
+      : reportType.includes("RECOMMENDED")
+      ? "RECOMMENDED"
+      : "CURRENT"
+  );
 
   const routeDirection = routesArr.filter(
     (route) => route.Name === controlsArr[0].GroupLabel
@@ -39,43 +74,34 @@ export function Canva() {
     (a, b) => Number(a.log_point) - Number(b.log_point)
   );
 
-  const differenceNPZ = structuredClone(
-    npZonesArr[0].children?.filter((zone) =>
-      ["Difference"].includes(zone.study_type)
-    )
+  const { differenceNPZ, currentZones, recommendedZones } = useMemo(() => {
+    return sepStudyTypeData(npZonesArr);
+  }, [npZonesArr]);
+
+  console.log(
+    differenceNPZ,
+    currentZones,
+    recommendedZones,
+    reportType,
+    compDataProcessed,
+    reportStudyType
   );
 
-  const currentZones = structuredClone(
-    npZonesArr[0].children?.filter((zone) =>
-      ["Current"].includes(zone.study_type)
-    )
-  );
-  const recommendedZones = structuredClone(
-    npZonesArr[0].children?.filter((zone) =>
-      ["Recommended"].includes(zone.study_type)
-    )
-  );
-
-  // const { agency, controlsArr, npZonesArr } = data;
-
-  const begControlObj = controlsArr[0]?.children[0];
-  const endControlObj =
-    controlsArr[0]?.children[controlsArr[0]?.children.length - 1];
-
-  const [bControl, eControl] = useMemo(() => {
-    const children = controlsArr[0].children;
-    return [
-      Number(children[0].log_point),
-      Number(children[children.length - 1].log_point),
-    ];
+  const [bControl, eControl, begControlObj, endControlObj] = useMemo(() => {
+    return getControlPoints(controlsArr);
   }, [controlsArr]);
 
-  console.log(bControl, eControl);
+  // npZonesArr[0].children = npZonesArr[0].children?.filter(
+  //   (zone) => zone.study_type === "Recommended"
+  //   // (zone) => zone.study_type === "Current"
+  // );
 
-  npZonesArr[0].children = npZonesArr[0].children?.filter(
-    (zone) => zone.study_type === "Recommended"
-    // (zone) => zone.study_type === "Current"
-  );
+  const [foundKeysLength, setFoundKeysLength] = useState(1);
+
+  const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCanvasScale(event.target.value === "1.0" ? 1000 : 2000);
+    setSearchKey((prevKey) => prevKey + 1);
+  };
 
   // Call preload once with all the control point types
   preloadImages(controlImages);
@@ -83,18 +109,30 @@ export function Canva() {
 
   // Generate passzone
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const resultPassZone = processZones(npZonesArr as any, bControl, eControl);
+  // const resultPassZone = processZones(npZonesArr as any, bControl, eControl);
 
   const currentPassZone = processZones(
     [{ ...npZonesArr[0], children: currentZones }] as any,
-    bControl,
-    eControl
+    bControl as number,
+    eControl as number
   );
-  // const recommendedPassZone = processZones(
-  //   [{ ...npZonesArr[0], children: recommendedZones }] as any,
-  //   bControl,
-  //   eControl
-  // );
+  const recommendedPassZone = processZones(
+    [{ ...npZonesArr[0], children: recommendedZones }] as any,
+    bControl as number,
+    eControl as number
+  );
+
+  //below code remove double pass zone drawing
+  if (reportStudyType === "RECOMMENDED") {
+    currentPassZone.forEach((item) => {
+      item.isDrawLine = false;
+    });
+  }
+  if (reportStudyType === "CURRENT ") {
+    recommendedPassZone.forEach((item) => {
+      item.isDrawLine = false;
+    });
+  }
 
   const sortedControlsArr = useMemo(() => {
     return controlsArr[0]?.children?.sort(
@@ -102,35 +140,18 @@ export function Canva() {
     );
   }, [controlsArr]);
 
-  function mapMilesToObject(
-    start: number,
-    end: number,
-    scale: number
-  ): { [key: string]: number } {
-    let obj: { [key: string]: number } = {};
-    let index = 1;
-
-    for (let i = start; i <= end; i += scale) {
-      obj[String(index)] = parseFloat(i.toFixed(2)); // Convert index to string
-      index++;
-    }
-
-    return obj;
-  }
-
   const milesMap = mapMilesToObject(
     Number(bControl),
     Number(eControl),
     canvasScale === 1000 ? 1.0 : 0.5
   );
-  console.log(milesMap);
 
   // Calculate canvasPageShift based on the first control point's log_point or search input
   const canvaspageShift = useMemo(() => {
     if (sortedControlsArr?.length === 0) return 1000; // Default shift if no control points
     const firstLogPoint = milePointSearch
       ? milesMap[milePointSearch]
-      : Number(sortedControlsArr[0].log_point);
+      : Number(sortedControlsArr[0]?.log_point);
     return Math.round(firstLogPoint * canvasScale) + 1000;
   }, [sortedControlsArr, milePointSearch]);
 
@@ -159,26 +180,19 @@ export function Canva() {
   }, [cpArr]);
 
   // Filter and process recommended zones
-  const routeZones = useMemo(() => {
-    // let zones = npZonesArr[0].children.filter(
-    // // (zone) => zone.study_type === "Recommended"
-    // (zone) => zone.study_type === "Current"
-    // );
-    let zones = npZonesArr[0].children;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    zones = [...zones, ...resultPassZone] as any;
-    zones.sort((a, b) => {
-      if (a.study_type === b.study_type) {
-        return a.b_trulog - b.b_trulog;
-      }
-      return a.study_type?.localeCompare(b.study_type);
-    });
-    return zones;
-  }, [npZonesArr, resultPassZone]);
+
+  const routeZonesRecommended = useMemo(() => {
+    return combineZonesAndPass(recommendedZones, recommendedPassZone);
+  }, [recommendedZones, recommendedPassZone]);
+
+  const routeZonesCurrent = useMemo(() => {
+    return combineZonesAndPass(currentZones, currentPassZone);
+  }, [currentZones, currentPassZone]);
 
   // Calculate positions for recommended zones
-  const recArr = useMemo(() => {
-    return routeZones?.map((item) => {
+
+  const calculateZonePositions = (zones, canvasScale, canvaspageShift) => {
+    return zones?.map((item) => {
       const positionYBegin =
         Math.round(Number(item.b_trulog) * canvasScale) - canvaspageShift;
       const positionYEnd =
@@ -189,21 +203,40 @@ export function Canva() {
         item: item,
       };
     });
-  }, [routeZones, canvaspageShift]);
+  };
+
+  const recommendedArr = useMemo(() => {
+    return calculateZonePositions(
+      routeZonesRecommended,
+      canvasScale,
+      canvaspageShift
+    );
+  }, [routeZonesRecommended, canvasScale, canvaspageShift]);
+
+  const currentArr = useMemo(() => {
+    return calculateZonePositions(
+      routeZonesCurrent,
+      canvasScale,
+      canvaspageShift
+    );
+  }, [routeZonesCurrent, canvasScale, canvaspageShift]);
 
   // Sort recArr based on b_trulog
-  const sortedRecArr = useMemo(() => {
-    return recArr?.sort((a, b) => {
+  const sortedRecommendedArr = useMemo(() => {
+    return recommendedArr?.sort((a, b) => {
       return Number(a.item.b_trulog) - Number(b.item.b_trulog);
     });
-  }, [recArr]);
+  }, [recommendedArr]);
+
+  const sortedCurrentArr = useMemo(() => {
+    return currentArr?.sort((a, b) => {
+      return Number(a.item.b_trulog) - Number(b.item.b_trulog);
+    });
+  }, [currentArr]);
 
   // Handle the search input and force re-render
-  const handleSearch = () => {
-    if (!milePointSearch || isNaN(Number(milePointSearch))) {
-      alert("Please enter a valid mile point.");
-      return;
-    }
+  const handleSearch = (value: string) => {
+    setMilePointSearch(value);
     setSearchKey((prevKey) => prevKey + 1); // Increment key to trigger re-render
   };
 
@@ -229,7 +262,18 @@ export function Canva() {
     });
   }, [sortedDifferenceNPZ, canvaspageShift]);
 
-  // console.log(canvasScale);
+  const handleScrollPageNumberRef = (value: ControlPointGroup) => {
+    // if (scrollPageNumberRef.current?.items[0]?.log_point) {
+    scrollPageNumberRef.current = value;
+
+    const foundKeys = findKeysBelowLogPoint(
+      milesMap,
+      Number(scrollPageNumberRef.current?.items[0]?.log_point)
+    );
+    setFoundKeysLength(foundKeys.length);
+    // }
+  };
+
 
   return (
     <div
@@ -241,7 +285,78 @@ export function Canva() {
         flexDirection: "column",
       }}
     >
+      <div>
+        <div>
+          <label htmlFor="stripeGapRatio">Stripe / Gap Ratio:</label>
+          <input
+            style={{ width: "50px" }}
+            type="number"
+            min={1}
+            max={99}
+            id="stripeLength"
+            // value={stripeLength}
+            placeholder={`${stripeLength}`}
+            onChange={(e) => setStripeLength(Number(e.target.value))}
+          />
+          /
+          <input
+            style={{ width: "50px" }}
+            type="number"
+            min={1}
+            max={99}
+            id="gapLength"
+            placeholder={`${gapLength}`}
+            onChange={(e) => setGapLength(Number(e.target.value))}
+          />
+          feet
+        </div>
+        <div>
+          <label htmlFor="compMilePointAll">Comparison Milepoints - All:</label>
+          <input
+            type="checkbox"
+            id="compMilePointAll"
+            checked={compMilePointAll}
+            onChange={(e) => {
+              setCompMilePointAll(e.target.checked);
+              setSearchKey((prevKey) => prevKey + 1); // Force re-render
+            }}
+          />
+        </div>
+        <div>
+          <label htmlFor="minDifference">Comparison Minimum Difference:</label>
+          <input
+            style={{ width: "60px" }}
+            type="number"
+            id="minDifference"
+            value={minDistance}
+            onChange={(e) => {
+              setMinDistance(Number(e.target.value));
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setSearchKey((prevKey) => prevKey + 1); // Force re-render
+              }
+            }}
+          />
+        </div>
+        <select
+          value={reportStudyType}
+          onChange={(e) => {
+            const selectedType = e.target.value;
+            setReportStudyType(selectedType);
+            // if (selectedType === "RECOMMENDED" || selectedType === "CURRENT") {
+            //   setSearchKey((prevKey) => prevKey + 1); // Force re-render
+            // }
+          }}
+        >
+          <option value="CURRENT">Current</option>
+          <option value="RECOMMENDED">Recommended</option>
+          {/* <option value="CURRENT COMP">Current Comparison</option>
+          <option value="RECOMMENDED COMP">Recommended Comparison</option> */}
+        </select>
+      </div>
       <ReportHeader
+        foundKeysLengthPage={foundKeysLength}
         pageLength={Object.keys(milesMap).length}
         routeName={controlsArr[0]?.GroupLabel}
         routeDirection={routeDirection[0]?.Direction}
@@ -250,55 +365,22 @@ export function Canva() {
         RouteNo={begControlObj?.route}
         bControl={`${begControlObj.log_point} ${begControlObj.descript}`}
         eControl={`${endControlObj.log_point} ${endControlObj.descript}`}
-        reportType={reportType}
+        reportType={studyType?reportStudyType:reportType}
         sortOrder={sortOrder}
         handleScaleChange={handleScaleChange}
         canvasScale={canvasScale}
-        milePointSearch={milePointSearch}
-        setMilePointSearch={setMilePointSearch}
         handleSearch={handleSearch}
       />
-      {/* <div>
-        <input
-          type="text"
-          value={milePointSearch}
-          onChange={(e) => setMilePointSearch(e.target.value)}
-          placeholder="1"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleSearch();
-            }
-          }}
-          style={{
-            width: "50px",
-            border: "1px solid #ccc",
-            borderRadius: "4px",
-          }}
-        />
-      </div> */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          width: "600px",
-          padding: "0px 30px 0px 30px",
-          fontSize: "small",
-        }}
-      >
-        <h5>Control Points</h5>
-        <h5 style={{ position: "relative", right: "-25px" }}>C-Length-R</h5>
-        <h5 style={{ position: "relative", right: "-5px" }}>C-Left-R</h5>
-        <h5 style={{ position: "relative", right: "-5px" }}>C/L</h5>
-        <h5 style={{ position: "relative", right: "0px" }}>C-Right-R</h5>
-        <h5 style={{ position: "relative", right: "20px" }}>C-Length-R</h5>
-        <h5>Control Points</h5>
-      </div>
+      <ColumnHeader />
       <CanvasScrollInteraction
         cpArr={groupedByPositionYArray}
         // diffZoneArr={[]}
-        recArr={[...sortedRecArr, ...diffZoneArr]} //***make sure difference should not get calculated in footer */
+        recArr={[...sortedCurrentArr, ...sortedRecommendedArr, ...diffZoneArr]} //***make sure difference should not get calculated in footer */
         // recArr={[...sortedRecArr]}
         canvasScale={canvasScale}
+        handleScrollPageNumberRef={handleScrollPageNumberRef}
+        stripeLength={stripeLength}
+        gapLength={gapLength}
       />
       <MilePointModal agencyName={agency.agencyName} />
     </div>

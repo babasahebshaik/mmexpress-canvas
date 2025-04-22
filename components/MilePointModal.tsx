@@ -163,6 +163,57 @@ const MilePointModal: React.FC<MilePointModalProps> = ({ agencyName }) => {
                 />
                 No Passing Zone Length
               </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                }}
+              >
+                <hr
+                  style={{
+                    border: "none",
+                    borderTop: "5px solid blue",
+                    width: "40px",
+                    marginRight: "20px",
+                  }}
+                />
+                Difference Length
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                }}
+              >
+                <div
+                  style={{
+                    borderLeft: "5px solid green",
+                    height: "20px",
+                    marginRight: "35px",
+                    marginLeft: "20px",
+                  }}
+                ></div>
+                Recommended extends beyond Current
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                }}
+              >
+                <div
+                  style={{
+                    borderLeft: "5px solid red",
+                    height: "20px",
+                    marginRight: "35px",
+                    marginLeft: "20px",
+                  }}
+                ></div>
+                Current extends beyond Recommended
+              </div>
             </div>
           </div>
         </div>

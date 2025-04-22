@@ -129,6 +129,7 @@ export const drawDistanceText = (
   const textXbegin = isRecommendedZone ? 225 : 195;
   const textXend = isRecommendedZone ? 455 : 425;
   const TextYcordinate = (items.positionYEnd + items.positionYBegin) / 2;
+
   const distanceText = (items.item.e_trulog - items.item.b_trulog).toFixed(3);
   const drawDistancechild = (
     context: CanvasRenderingContext2D,
@@ -191,8 +192,8 @@ export function drawText(context: CanvasRenderingContext2D, items: any) {
   const textXbegin = isRecommendedZone ? 285 : 255;
   const textXend = isRecommendedZone ? 395 : 365;
 
-  const beginLog = items.item.b_trulog.toFixed(3);
-  const endLog = items.item.e_trulog.toFixed(3);
+  const beginLog = items.item?.print_beg ? items.item.b_trulog.toFixed(3) : " ";
+  const endLog = items.item.print_end ? items.item.e_trulog.toFixed(3) : " ";
   const drawTextchild = (
     context: CanvasRenderingContext2D,
     positionYBegin: number,
@@ -231,6 +232,7 @@ export function drawText(context: CanvasRenderingContext2D, items: any) {
     // case "11":
     // case "12":
     default:
+      //all 01,02,03,04 below
       drawTextchild(context, textXbegin, items.positionYBegin, beginLog);
       drawTextchild(context, textXbegin, items.positionYEnd, endLog);
       drawTextchild(context, textXend, items.positionYBegin, beginLog);
@@ -241,6 +243,7 @@ export function drawText(context: CanvasRenderingContext2D, items: any) {
 }
 const canvasX = 300;
 export const drawTWLTL = (
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
@@ -490,6 +493,7 @@ export const drawTWLTL = (
 
 // Function to draw 2DBYL pattern
 export function draw2DBYL(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
@@ -738,6 +742,7 @@ export function draw2DBYL(
 
 // Function to draw LTLSAME pattern
 export function drawLTLSAME(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
@@ -912,6 +917,7 @@ export function drawLTLSAME(
 
 // Function to draw LTLOPP pattern
 export function drawLTLOPP(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
@@ -1087,6 +1093,7 @@ export function drawLTLOPP(
 
 // Function to draw LTLOPP pattern
 export function drawNONE(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number
@@ -1096,6 +1103,7 @@ export function drawNONE(
 
 //function to draw L No Passing Zone
 export function drawLNoPass(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
@@ -1114,6 +1122,7 @@ export function drawLNoPass(
 }
 
 export function drawRNoPass(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number,
@@ -1132,6 +1141,7 @@ export function drawRNoPass(
 }
 
 export function drawLPass(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number
@@ -1148,6 +1158,7 @@ export function drawLPass(
 }
 
 export function drawRPass(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number
@@ -1164,6 +1175,7 @@ export function drawRPass(
 }
 // Function to draw Excluded pattern
 export function drawExcluded(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number
@@ -1173,6 +1185,7 @@ export function drawExcluded(
 
 // Function to draw Undetermined pattern
 export function drawUndetermined(
+  items: Items,
   context: CanvasRenderingContext2D,
   positionYBegin: number,
   positionYEnd: number

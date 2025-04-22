@@ -19,9 +19,12 @@ export const processCompData = (
   const npZonesdifferences: NpZonesArrEntity[] = [];
 
   resultCopy.npZonesArr.forEach((npZoneEnt) => {
-    const recommendedChildren = filterChildren(npZoneEnt.children, "Recommended");
-    const currentChildren = filterChildren(npZoneEnt.children, "Current");
-    const noneChildren = filterNoneZones(npZoneEnt.children);
+    const recommendedChildren = filterChildren(
+      npZoneEnt?.children || [],
+      "Recommended"
+    );
+    const currentChildren = filterChildren(npZoneEnt.children || [], "Current");
+    const noneChildren = filterNoneZones(npZoneEnt.children || []);
 
     npZonesDifferenceArr.push({
       GroupLabel: npZoneEnt.GroupLabel,
@@ -35,8 +38,12 @@ export const processCompData = (
     });
   });
 
-  const isCurrentBaseReport = reportType === ReportType.NO_PASSING_ROUTE_GRAPHICAL_ZONES_COMPARISON_CURRENT_BASE_REPORT;
-  const isRecommendedBaseReport = reportType === ReportType.NO_PASSING_ROUTE_GRAPHICAL_ZONES_COMPARISON_RECOMMENDED_BASE_REPORT;
+  const isCurrentBaseReport =
+    reportType ===
+    ReportType.NO_PASSING_ROUTE_GRAPHICAL_ZONES_COMPARISON_CURRENT_BASE_REPORT;
+  const isRecommendedBaseReport =
+    reportType ===
+    ReportType.NO_PASSING_ROUTE_GRAPHICAL_ZONES_COMPARISON_RECOMMENDED_BASE_REPORT;
 
   if (isCurrentBaseReport || isRecommendedBaseReport) {
     npZonesDifferenceArr.forEach((npZoneEnt) => {
@@ -63,12 +70,12 @@ export const processCompData = (
   });
 
   npZonesdifferences.forEach((npZoneDiff, i) => {
-    markZones(resultCopy.npZonesArr[i].children);
-    markZones(npZonesWithNoneZones[i].children);
-    markDifferenceZones(npZoneDiff.children);
+    markZones(resultCopy.npZonesArr[i].children || []);
+    markZones(npZonesWithNoneZones[i].children || []);
+    markDifferenceZones(npZoneDiff.children || []);
 
-    const excludedZones = npZonesWithNoneZones[i]?.children?.filter(
-      (item) => ["11", "12"].includes(item.zone_code)
+    const excludedZones = npZonesWithNoneZones[i]?.children?.filter((item) =>
+      ["11", "12"].includes(item.zone_code)
     );
 
     npZoneDiff.children?.forEach((child) => {
@@ -99,8 +106,14 @@ export const processCompData = (
         : [...mergedData];
     } else {
       resultCopy.npZonesArr[i].children = [
-        ...(filterByStudyType(resultCopy.npZonesArr[i].children, isCurrentBaseReport ? "Current" : "Recommended") || []),
-        ...(filterByStudyType(npZonesWithNoneZones[i].children, isCurrentBaseReport ? "Current" : "Recommended") || []),
+        ...(filterByStudyType(
+          resultCopy.npZonesArr[i].children || [],
+          isCurrentBaseReport ? "Current" : "Recommended"
+        ) || []),
+        ...(filterByStudyType(
+          npZonesWithNoneZones[i].children || [],
+          isCurrentBaseReport ? "Current" : "Recommended"
+        ) || []),
       ];
     }
   });
@@ -108,7 +121,10 @@ export const processCompData = (
   return resultCopy;
 };
 
-const filterChildren = (children: ChildrenEntity1[] | undefined, studyType: string) => {
+const filterChildren = (
+  children: ChildrenEntity1[] | undefined,
+  studyType: string
+) => {
   return children?.filter(
     (zone) =>
       !["06", "11", "12"].includes(zone.zone_code) &&
@@ -117,9 +133,8 @@ const filterChildren = (children: ChildrenEntity1[] | undefined, studyType: stri
 };
 
 const filterNoneZones = (children: ChildrenEntity1[] | undefined) => {
-  return children?.filter(
-    (zone) =>
-      ["06", "11", "12"].includes(zone.zone_code)
+  return children?.filter((zone) =>
+    ["06", "11", "12"].includes(zone.zone_code)
   );
 };
 
@@ -139,7 +154,10 @@ const markDifferenceZones = (children: ChildrenEntity1[] | undefined) => {
   });
 };
 
-const filterByStudyType = (children: ChildrenEntity1[] | undefined, studyType: string) => {
+const filterByStudyType = (
+  children: ChildrenEntity1[] | undefined,
+  studyType: string
+) => {
   return children?.filter((item) => item.study_type === studyType);
 };
 
@@ -189,9 +207,9 @@ const getDifference = (
   recommended: ChildrenEntity1[],
   studyType: string
 ) => {
-  let clen = current.length;
-  let rlen = recommended.length;
-  let extraZoneSpace: ChildrenEntity1Compare[] = [];
+  const clen = current.length;
+  const rlen = recommended.length;
+  const extraZoneSpace: ChildrenEntity1Compare[] = [];
   const currentZones = current.sort((a, b) => a.b_trulog - b.b_trulog);
   const recommendedZones = recommended.sort((a, b) => a.b_trulog - b.b_trulog);
 
@@ -207,33 +225,60 @@ const getDifference = (
 
       if (c.b_trulog < r.b_trulog && c.e_trulog > r.b_trulog) {
         if (previousRecommended && previousRecommended.e_trulog > c.b_trulog) {
-          extraZoneSpace.push(createZone(r, previousRecommended.e_trulog, r.b_trulog, "green", studyType));
+          extraZoneSpace.push(
+            createZone(
+              r,
+              previousRecommended.e_trulog,
+              r.b_trulog,
+              "green",
+              studyType
+            )
+          );
         } else {
-          extraZoneSpace.push(createZone(c, c.b_trulog, r.b_trulog, "green", studyType));
+          extraZoneSpace.push(
+            createZone(c, c.b_trulog, r.b_trulog, "green", studyType)
+          );
         }
       }
       if (r.b_trulog < c.b_trulog && r.e_trulog >= c.b_trulog) {
         if (!previousCurrent || previousCurrent.e_trulog <= r.b_trulog) {
-          extraZoneSpace.push(createZone(r, r.b_trulog, c.b_trulog, "red", studyType));
+          extraZoneSpace.push(
+            createZone(r, r.b_trulog, c.b_trulog, "red", studyType)
+          );
         }
       }
       if (c.e_trulog < r.e_trulog && c.e_trulog > r.b_trulog) {
         if (nextCurrent && nextCurrent.b_trulog < r.e_trulog) {
-          extraZoneSpace.push(createZone(c, c.e_trulog, nextCurrent.b_trulog, "red", studyType));
+          extraZoneSpace.push(
+            createZone(c, c.e_trulog, nextCurrent.b_trulog, "red", studyType)
+          );
         } else {
-          extraZoneSpace.push(createZone(c, c.e_trulog, r.e_trulog, "red", studyType));
+          extraZoneSpace.push(
+            createZone(c, c.e_trulog, r.e_trulog, "red", studyType)
+          );
         }
       }
       if (c.e_trulog > r.e_trulog && c.b_trulog < r.e_trulog) {
         if (!nextRecommended || nextRecommended.b_trulog >= c.e_trulog) {
-          extraZoneSpace.push(createZone(c, r.e_trulog, c.e_trulog, "green", studyType));
+          extraZoneSpace.push(
+            createZone(c, r.e_trulog, c.e_trulog, "green", studyType)
+          );
         }
       }
     }
   }
 
-  extraZoneSpace.push(...getNonOverlappingZones(currentZones, recommendedZones, "red", studyType));
-  extraZoneSpace.push(...getNonOverlappingZones(recommendedZones, currentZones, "green", studyType));
+  extraZoneSpace.push(
+    ...getNonOverlappingZones(currentZones, recommendedZones, "red", studyType)
+  );
+  extraZoneSpace.push(
+    ...getNonOverlappingZones(
+      recommendedZones,
+      currentZones,
+      "green",
+      studyType
+    )
+  );
 
   return extraZoneSpace;
 };
@@ -261,15 +306,20 @@ const getNonOverlappingZones = (
   type: string,
   study_type: string
 ): ChildrenEntity1Compare[] => {
-  return zonesA.filter(a => !zonesB.some(b => isOverlapping(a, b)))
-    .map(zone => createZone(zone, zone.b_trulog, zone.e_trulog, type, study_type));
+  return zonesA
+    .filter((a) => !zonesB.some((b) => isOverlapping(a, b)))
+    .map((zone) =>
+      createZone(zone, zone.b_trulog, zone.e_trulog, type, study_type)
+    );
 };
 
 const isOverlapping = (a: ChildrenEntity1, b: ChildrenEntity1): boolean => {
-  return (a.b_trulog < b.b_trulog && a.e_trulog > b.b_trulog) ||
+  return (
+    (a.b_trulog < b.b_trulog && a.e_trulog > b.b_trulog) ||
     (b.b_trulog < a.b_trulog && b.e_trulog >= a.b_trulog) ||
     (a.e_trulog <= b.e_trulog && a.e_trulog >= b.b_trulog) ||
-    (a.e_trulog > b.e_trulog && a.b_trulog < b.e_trulog);
+    (a.e_trulog > b.e_trulog && a.b_trulog < b.e_trulog)
+  );
 };
 
 export const comparisionallMilePoints = (
